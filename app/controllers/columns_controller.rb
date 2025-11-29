@@ -3,9 +3,9 @@ class ColumnsController < ApplicationController
 
 def index
   if params[:status].present?
-    @columns = Column.where(status: params[:status]).where.not(status: "draft").order(created_at: :desc)
+    @columns = Column.where(status: params[:status]).where.not(status: "draft").order(updated_at: :desc)
   else
-    @columns = Column.where.not(status: "draft").order(created_at: :desc)
+    @columns = Column.where.not(status: "draft").order(updated_at: :desc)
   end
 end
 
