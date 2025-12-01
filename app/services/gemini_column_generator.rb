@@ -1,35 +1,33 @@
 # app/services/gemini_column_generator.rb
 class GeminiColumnGenerator
   require "net/http"
-  require "json"
-  require "openssl"
+  # ... (require, 定数定義は省略) ...
 
   GEMINI_API_KEY = ENV["GEMINI_API_KEY"]
   GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
 
   def self.generate_columns(batch_count: 100)
-    # カテゴリの制限リストを設定
-    category_list = ["物流トレンド", "コスト削減・効率化", "法令・安全対策", "顧客獲得・サービス向上", "新規事業・技術導入"]
+    # カテゴリは「取引検討者（荷主など）」の関心事に合わせたものに変更
+    category_list = ["軽貨物パートナー選定", "物流DX・技術連携", "発注リスクと法令遵守", "市場トレンドと展望", "コスト最適化・事例"]
 
     batch_count.times do
-      # 軽貨物事業者の経営層・担当者が新規取引を検討したくなるようなテーマを要求
-      # カテゴリの選択肢もプロンプトに含めて、AIの回答を誘導
+      # 🚨 プロンプトを根本的に修正：ターゲットを「取引したい企業」に限定
       prompt = <<~EOS
         軽貨物配送サービスに関するブログ記事のテーマ、記事概要、SEOキーワード、およびカテゴリを日本語で生成してください。
-        ターゲット読者は軽貨物事業者の経営層・担当者で、彼らが新規の取引や業務提携を検討したくなるような、事業の課題解決や収益向上につながる汎用性のあるテーマを抽出してください。
-        テーマは常に多様性を保ってください。求職者に向けた発信ではありません。
-
+        
+        ターゲット読者は**軽貨物事業者との取引や協業を検討している企業の担当者または経営層（荷主企業やITベンダーなど）**です。
+        テーマは、彼らが発注や提携の意思決定に役立つ、軽貨物事業者の選定基準、メリット、市場動向、リスク管理に関する内容とし、常に多様性を保ってください。
+        
+        求職者および軽貨物事業者自身に向けた発信ではありません。
         カテゴリは以下のリストから必ず1つ選択してください: #{category_list.join(", ")}
       EOS
       
-      response_json_string = post_to_gemini(prompt, category_list) # category_listを引数に追加
+      response_json_string = post_to_gemini(prompt, category_list)
       next unless response_json_string
 
       begin
         data = JSON.parse(response_json_string)
-        
-        # モデルに合わせて choice の代わりに category に変更することを推奨します。
-        # 現在のDBカラム名に合わせて choice のままにしますが、内容的には「category」です。
+
         Column.create!(
           title:       data["title"],
           description: data["description"],
@@ -49,16 +47,15 @@ class GeminiColumnGenerator
   end
 
 
-  # category_listを引数に追加し、スキーマに enum として制約を追加
+  # post_to_gemini メソッドは、category_listを引数に受け取り、スキーマのenumに設定する点で、前回の修正版（2.post_to_gemini(prompt, category_list)の箇所）をそのまま利用します。
   def self.post_to_gemini(prompt, category_list = nil)
     uri = URI(GEMINI_API_URL)
     uri.query = URI.encode_www_form(key: GEMINI_API_KEY)
 
     req = Net::HTTP::Post.new(uri, "Content-Type" => "application/json")
 
-    # responseSchemaの choice の名前を category に変更し、enum で選択肢を制限
     category_schema = { "type": "string" }
-    category_schema["enum"] = category_list if category_list.present? # enum制約を追加
+    category_schema["enum"] = category_list if category_list.present?
 
     req.body = {
       contents: [ { parts: [ { text: prompt } ] } ],
@@ -70,7 +67,7 @@ class GeminiColumnGenerator
             "title":       { "type": "string" },
             "description": { "type": "string" },
             "keyword":     { "type": "string" },
-            "category":    category_schema # choice から category に変更
+            "category":    category_schema 
           },
           "required": ["title", "description", "keyword", "category"]
         }
