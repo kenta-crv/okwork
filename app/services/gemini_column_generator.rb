@@ -49,12 +49,14 @@ class GeminiColumnGenerator
       max_retries.times do |attempt|
         # post_to_gemini の引数には、全カテゴリリストを渡す (JSONスキーマのenum制約のため)
         response_json_string = post_to_gemini(prompt, category_list) 
-        break if response_json_string 
-        
+        break if response_json_string
+
         if attempt < max_retries - 1
-          sleep_time = 2 ** attempt
-          Rails.logger.warn("Gemini API呼び出し失敗 (試行#{attempt + 1}/#{max_retries})。#{sleep_time}秒待機してリトライします。")
-          sleep(sleep_time) 
+          sleep_time = 12
+          Rails.logger.warn(
+            "Gemini API 429発生 (#{attempt + 1}/#{max_retries})。#{sleep_time}秒待機"
+            )
+            sleep(sleep_time)
         end
       end
       

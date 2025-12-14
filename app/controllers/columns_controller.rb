@@ -163,6 +163,7 @@ end
       :choice,  #カテゴリー
       :keyword, #キーワード
       :description, #説明
+      :genre,
       :body #本文
       )
     end

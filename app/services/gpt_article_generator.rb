@@ -1,309 +1,238 @@
 require "net/http"
 require "json"
 require "openssl"
-require 'openai'
+require "openai"
 
 class GptArticleGenerator
-  # 修正1: 1セクションあたりの目標文字数を300文字に調整。
-  TARGET_CHARS_PER_SECTION = 300 
-  # 修正2: 1セクションあたりの厳格な文字数上限。
+  TARGET_CHARS_PER_SECTION = 300
   MAX_CHARS_PER_SECTION = 500
-  MODEL_NAME = "gpt-4o-mini" # 使用モデル
-  
-  # 環境変数からOpenAI API Keyを取得
-  GPT_API_KEY = ENV["OPENAI_API_KEY"] 
+  MODEL_NAME = "gpt-4o-mini"
+
+  GPT_API_KEY = ENV["OPENAI_API_KEY"]
   GPT_API_URL = "https://api.openai.com/v1/chat/completions"
 
+  # ==============================
+  # 業種カテゴリ定義（部分一致）
+  # ==============================
+  CATEGORY_KEYWORDS = {
+    "警備"     => ["警備"],
+    "軽貨物"   => ["軽貨物", "配送"],
+    "清掃"     => ["清掃"],
+    "営業代行" => ["営業代行", "テレアポ"],
+    "ブログ"   => ["ブログ"],
+    "建設"     => ["建設", "現場"]
+  }
+
   def self.generate_body(column)
-    # 🚨 STEP 0: APIキーの存在チェック 🚨
     unless GPT_API_KEY.present?
-      Rails.logger.error("【致命的エラー】OPENAI_API_KEY が設定されていません。環境変数を確認してください。")
+      Rails.logger.error("OPENAI_API_KEY が設定されていません")
       return nil
     end
 
-    # 記事本文の初期値（エラー発生時にDBに書き込まれるのを防ぐため、nilを返す前提とする）
-    original_body = column.body 
+    original_body = column.body
+    category = detect_category(column.keyword)
 
-    # ==========================================
-    # STEP 1: 記事全体の構成（H2とH3のネスト構造）をJSONで作成する
-    # ==========================================
-    Rails.logger.warn("★☆★ GptArticleGenerator.generate_body が実行されました！ ★☆★") # 実行チェック
-    Rails.logger.info("--- STEP 1: 記事構成の生成を開始 (ネストJSON要求) ---")
-    
-    # 修正された構成生成プロンプトを呼び出す
-    structure_prompt = self.structure_generation_prompt(column)
-    
-    # JSONモードでAPIを呼び出す
-    structure_response = self.call_gpt_api(structure_prompt, response_format: { type: "json_object" })
-    
-    structure = [] # H2とH3のネストされた構造を格納
-    
-    if structure_response.nil?
-      Rails.logger.error("構成案のAPI応答がnilでした。")
-      return original_body
-    end
+    Rails.logger.info("判定カテゴリ: #{category}")
+
+    # ==============================
+    # STEP 1: 構成生成
+    # ==============================
+    structure_prompt = structure_generation_prompt(column, category)
+    structure_response = call_gpt_api(structure_prompt, response_format: { type: "json_object" })
+
+    return original_body if structure_response.nil?
 
     begin
       json_str = structure_response.dig("choices", 0, "message", "content")
-      Rails.logger.info("JSON API応答 (生): #{json_str.to_s.truncate(200)}")
-      
-      # 取得したJSON文字列をパースし、ネストされた'structure'配列を取得
       structure_data = JSON.parse(json_str)
       structure = structure_data["structure"] || []
-      
-      Rails.logger.info("見出し抽出成功。H2見出し数: #{structure.length}個")
 
-      # H2見出し数が極端に少ない場合はエラーとして扱う
-      if structure.length < 3
-        Rails.logger.error("H2見出しの生成に失敗、または数が不足しています（#{structure.length}個）。処理を中断します。")
-        return original_body
-      end
-
-    rescue JSON::ParserError => e
-      Rails.logger.error("重大エラー: JSONパースエラーが発生しました: #{e.message}. APIが不正なJSONを返しました。")
-      Rails.logger.error("不正なJSON文字列: #{json_str.to_s.truncate(500)}")
-      return original_body
+      return original_body if structure.length < 3
     rescue => e
-      Rails.logger.error("重大エラー: 構成案処理中に予期せぬエラーが発生しました: #{e.message}")
+      Rails.logger.error("構成生成エラー: #{e.message}")
       return original_body
     end
 
-    # ==========================================
-    # STEP 2: 各セクションの本文をループで生成・結合する 
-    # ==========================================
-    Rails.logger.info("--- STEP 2: H2/H3ネスト本文生成ループを開始 ---")
+    # ==============================
+    # STEP 2: 本文生成
+    # ==============================
     full_article = ""
-    
-    # 1. 導入文（リード）の生成
-    intro_prompt = self.introduction_prompt(column)
-    # 導入の失敗時はH2の失敗と同じようにマークダウンを残す
-    full_article += self.generate_section_content("導入", intro_prompt, column, heading_level: "") + "\n\n" # 導入文に見出しは不要なため、levelを空に
 
-    # 2. H2とH3の見出しごとの本文生成
-    total_h2 = structure.length
-    structure.each_with_index do |h2_section, index|
-      h2_title = h2_section["h2_title"]
-      h3_sub_sections = h2_section["h3_sub_sections"] || []
+    full_article += generate_section_content(
+      "導入",
+      introduction_prompt(column, category),
+      column,
+      heading_level: ""
+    ) + "\n\n"
 
-      # H2見出し自体をMarkdownで追加（##）
-      full_article += "## #{h2_title}\n\n"
-      Rails.logger.info("H2セクション見出しを追加 (#{index + 1}/#{total_h2}): #{h2_title}")
-      
-      # H3サブセクションの本文生成 (見出しレベル: ###)
-      if h3_sub_sections.any?
-        h3_sub_sections.each_with_index do |h3_title, sub_index|
-          Rails.logger.info("  ↳ H3サブセクション生成中 (#{sub_index + 1}): #{h3_title}")
-          h3_prompt = self.section_content_prompt(column, h3_title, "H3", parent_h2: h2_title) # level: H3, parent_h2: H2タイトル
-          full_article += self.generate_section_content(h3_title, h3_prompt, column, heading_level: "###") + "\n\n"
+    structure.each do |h2|
+      full_article += "## #{h2['h2_title']}\n\n"
+
+      if h2["h3_sub_sections"].present?
+        h2["h3_sub_sections"].each do |h3|
+          prompt = section_content_prompt(column, h3, "H3", category, parent_h2: h2["h2_title"])
+          full_article += generate_section_content(h3, prompt, column, heading_level: "###") + "\n\n"
           sleep(0.5)
         end
       else
-        # H3がない場合のみ、H2直下の本文を生成する
-        Rails.logger.warn("  ↳ H3サブセクションがないため、H2直下の本文を生成します。")
-        h2_prompt = self.section_content_prompt(column, h2_title, "H2")
-        # heading_levelを空にして、見出し自体は含めず本文のみをH2見出しの直下に追加
-        full_article += self.generate_section_content(h2_title, h2_prompt, column, heading_level: "") + "\n\n"
+        prompt = section_content_prompt(column, h2["h2_title"], "H2", category)
+        full_article += generate_section_content(h2["h2_title"], prompt, column, heading_level: "") + "\n\n"
       end
 
-      # APIレート制限回避と安定性のためにスリープを入れる
-      sleep(0.5) 
+      sleep(0.5)
     end
 
-    # 3. まとめ・CTAの生成
-    cta_prompt = self.conclusion_and_cta_prompt(column)
-    # まとめは「## まとめ」からプロンプト内で生成させるため、heading_levelは空
-    full_article += self.generate_section_content("まとめ", cta_prompt, column, heading_level: "")
-    
-    Rails.logger.info("--- 全てのセクション生成が完了しました。合計文字数: #{full_article.length} ---")
-    return full_article
-  end
-  
-  private
+    full_article += generate_section_content(
+      "まとめ",
+      conclusion_and_cta_prompt(column, category),
+      column,
+      heading_level: ""
+    )
 
-  # ==========================================
-  # プロンプト生成ヘルパーメソッド群
-  # ==========================================
-  
-  def self.ok_delivery_strengths
-    # この情報は、最後に呼び出すCTAプロンプトでのみ使用します。
-    <<~STRENGTHS
-      # OK配送のセールスポイント
-      - 強み1：日本全国どこでも軽貨物配送可能な人材を集められる
-      - 強み2：早朝から深夜・企業配送〜個人配送まで幅広く対応
-      - 強み3：ドライバーの大量募集や地方の物流環境構築までサポート
-    STRENGTHS
+    full_article
   end
-  
-  def self.structure_generation_prompt(column)
-    # STEP 1用のプロンプト
+
+  # ==============================
+  # カテゴリ判定
+  # ==============================
+  def self.detect_category(keyword)
+    return "その他" if keyword.blank?
+
+    CATEGORY_KEYWORDS.each do |category, words|
+      return category if words.any? { |w| keyword.include?(w) }
+    end
+
+    "その他"
+  end
+
+  # ==============================
+  # サービス情報（軽貨物のみ）
+  # ==============================
+  def self.service_profile(category)
+    return "" unless category == "軽貨物"
+
+    <<~TEXT
+      サービス名: OK配送
+      強み:
+      - 全国対応の軽貨物ネットワーク
+      - 企業配送・個人配送どちらも対応
+      - ドライバー大量確保が可能
+    TEXT
+  end
+
+  # ==============================
+  # プロンプト群
+  # ==============================
+  def self.structure_generation_prompt(column, category)
     <<~PROMPT
-      あなたはプロのライターです。以下のテーマでブログ記事の「詳細な構成案」を作成してください。
-      
+      あなたはプロのWebライターです。
+
       # 記事情報
       - タイトル: #{column.title}
       - 概要: #{column.description}
       - キーワード: #{column.keyword}
-      - ターゲット: 軽貨物配送を依頼したい企業の担当者
-      
-      # 指示 (構成の数を厳格に制限と論旨の一貫性を強調)
-      1. **一つの物語として読者の理解が深まる、論理的で一貫性のある構成**にしてください。
-      2. H2見出しは**最大4つ**までとしてください。
-      3. 各H2見出し配下のH3見出しは**最大3つ**までとしてください。
-      4. 導入（リード）とまとめ（CTA）は別途生成するため、このリストには含めないでください。
-      5. この構成と、1セクションあたり#{TARGET_CHARS_PER_SECTION}〜#{MAX_CHARS_PER_SECTION}文字を目安として、合計4,000文字〜7,000文字程度の記事になるようにしてください。
-      6. 出力は必ず以下の**JSON形式のみ**で行ってください。余計な挨拶やマークダウンを一切含めないでください。
+      - 業種カテゴリ: #{category}
+      - ターゲット: #{category}の業務を外注・依頼したい企業担当者
 
-      # 出力フォーマット(JSON)
+      # 指示
+      - H2は最大4つ
+      - H3は各H2につき最大3つ
+      - 導入・まとめは含めない
+      - 論理的で一貫した構成にする
+
+      # 出力形式（JSONのみ）
       {
         "structure": [
           {
-            "h2_title": "H2見出しのタイトル",
-            "h3_sub_sections": [
-              "H3小見出し1のタイトル",
-              "H3小見出し2のタイトル"
-            ]
-          },
-          ...
+            "h2_title": "H2見出し",
+            "h3_sub_sections": ["H3見出し"]
+          }
         ]
       }
     PROMPT
   end
 
-  def self.introduction_prompt(column)
-    # 導入文生成用のプロンプト
+  def self.introduction_prompt(column, category)
     <<~PROMPT
-      タイトル「#{column.title}」の記事の「導入文（リード）」を執筆してください。
-      
-      # 執筆指示 (文字数を厳格に制限)
-      - **文字数:** **#{TARGET_CHARS_PER_SECTION}文字程度**を目標とし、いかなる場合も**#{MAX_CHARS_PER_SECTION}文字を超過しないでください**。超過した場合、記事全体の構成が破綻します。
-      - トーンは信頼感のあるビジネスライティングで、読者の共感を呼び、記事を読み進めたくなる内容にしてください。
-      - 本文は**段落（空行）**、**太字（**太字**）**、**箇条書き**を積極的に使い、可読性を最大化してください。
-      - **見出しは一切含めないでください。**
+      タイトル「#{column.title}」の記事の導入文を書いてください。
+
+      - 対象業種: #{category}
+      - 文字数: #{TARGET_CHARS_PER_SECTION}文字程度（最大#{MAX_CHARS_PER_SECTION}文字）
+      - 見出しは含めない
+      - 段落・太字・箇条書きを活用
     PROMPT
   end
 
-  # H2とH3両方で使うセクション本文生成用のプロンプト
-  def self.section_content_prompt(column, headline, level, parent_h2: nil)
-    # セクション本文生成用のプロンプト
-    parent_context = parent_h2 ? "\n- 親セクション（H2）: #{parent_h2}" : ""
-    heading_marker = level == "H2" ? "##" : "###"
+  def self.section_content_prompt(column, headline, level, category, parent_h2: nil)
+    parent = parent_h2 ? "（親H2: #{parent_h2}）" : ""
 
-    # H2直下の本文生成はH3がない場合のみのため、H2の場合は見出し含めず本文のみを生成するプロンプトにする
-    if level == "H2"
-      heading_instruction = "本文のみを執筆し、見出し（#{heading_marker} #{headline}）は含めないでください。見出しは別で追加します。"
-    elsif level == "H3"
-      # H3の場合は見出しを文頭に含める（Markdown形式）
-      heading_instruction = "**見出し自体（#{heading_marker} #{headline}）を文頭に含めてMarkdown形式で出力してください。**"
-    else
-      heading_instruction = ""
-    end
+    heading_instruction =
+      level == "H3" ? "### #{headline} から書き始めてください。" : "本文のみを書いてください。"
 
     <<~PROMPT
-      ブログ記事の以下のセクションの本文を執筆してください。
-      
-      # 記事全体の文脈
+      以下のセクション本文を書いてください。
+
+      - 業種カテゴリ: #{category}
       - タイトル: #{column.title}
-      - メインキーワード: #{column.keyword}
-      - ターゲット: 軽貨物配送を依頼したい企業の担当者
-      
-      # 現在のセクション情報
-      - 見出しレベル: #{level}#{parent_context}
-      - 見出しタイトル: #{headline}
-      
-      # 執筆指示 (文字数と内容の厳格な制限)
-      - この見出し配下の本文のみを書いてください。
-      - **文字数:** **#{TARGET_CHARS_PER_SECTION}文字程度**を目標とし、いかなる場合も**#{MAX_CHARS_PER_SECTION}文字を超過しないでください**。
-      - **内容の厳格な制限:** **OK配送の宣伝や、そのセクションのまとめは一切含めないでください**。純粋に情報提供と論点の深掘りに集中し、次のセクションへと論理的に繋げてください。
-      - **可読性の確保:** 本文は必ず**段落（空行）**、**太字（**太字**）**、**箇条書き**を積極的に使い、文章の固まりを防いでください。
-      - **H4の利用（重要）:** もし文章内で特定のポイントをさらに細分化する必要がある場合は、**`####` (H4見出し)**を適切に利用して構造化を深めてください。
-      - 具体的なデータ、事例、メリットなどを詳細に記述し、専門性を持たせてください。
-      - 語り口: 信頼感のあるビジネスライティング（です・ます調）。
-      - #{heading_instruction}
+      - 見出し: #{headline} #{parent}
+
+      # 制約
+      - 文字数: #{TARGET_CHARS_PER_SECTION}文字程度（最大#{MAX_CHARS_PER_SECTION}文字）
+      - 宣伝・CTAは禁止
+      - 段落・太字・箇条書きを使用
+      - H4（####）使用可
+      - です・ます調
+
+      #{heading_instruction}
     PROMPT
   end
 
-  def self.conclusion_and_cta_prompt(column)
-    # まとめ・CTA生成用のプロンプト
+  def self.conclusion_and_cta_prompt(column, category)
+    service = service_profile(category)
+
     <<~PROMPT
-      記事の「まとめ」と「CTA（行動喚起）」を執筆してください。
-      
-      # 指示 (文字数を厳格に制限)
-      - **文字数:** **#{TARGET_CHARS_PER_SECTION}文字程度**を目標とし、いかなる場合も**#{MAX_CHARS_PER_SECTION}文字を超過しないでください**。超過した場合、記事全体の構成が破綻します。
-      - 記事全体の要約を簡潔に述べる。
-      - 最後に、貴社のサービス「OK配送」への具体的な問い合わせ（サービス詳細や見積もり依頼）を促す**強力な行動喚起（CTA）**を含めてください。
-      - OK配送の強み: #{self.ok_delivery_strengths}
-      - 本文は**段落（空行）**、**太字（**太字**）**、**箇条書き**を積極的に使い、可読性を最大化してください。
-      - **見出し「## まとめ」から始めてください。**
+      記事のまとめとCTAを書いてください。
+
+      - 文字数: #{TARGET_CHARS_PER_SECTION}文字程度（最大#{MAX_CHARS_PER_SECTION}文字）
+      - 「## まとめ」から開始
+      - 記事内容を簡潔に要約
+      - 最後に行動喚起を含める
+
+      #{service}
     PROMPT
   end
 
-  # ヘルパーメソッド: 個別のセクション生成を実行
-  def self.generate_section_content(section_name, prompt, column, heading_level: "##")
-    response = self.call_gpt_api(prompt)
-
-    if response && response["choices"]&.first&.dig("message", "content")
-      content = response["choices"].first["message"]["content"]
-      Rails.logger.info("セクション「#{section_name}」の本文生成に成功しました。文字数: #{content.length}") 
-      return content
-    else
-      Rails.logger.error("セクション「#{section_name}」の本文生成に失敗しました。")
-      error_text = "（※#{section_name}の本文生成に失敗しました。APIエラーまたは本文が空です）"
-      if heading_level.empty?
-        return error_text + "\n"
-      else
-        # エラー発生時の代替テキストにも見出しを付ける（H3など）
-        return "#{heading_level} #{section_name}\n#{error_text}\n" 
-      end
-    end
+  # ==============================
+  # GPT呼び出し
+  # ==============================
+  def self.generate_section_content(name, prompt, column, heading_level: "##")
+    response = call_gpt_api(prompt)
+    response&.dig("choices", 0, "message", "content") || "（#{name}生成失敗）"
   end
 
-  # ==========================================
-  # API通信ヘルパーメソッド
-  # ==========================================
   def self.call_gpt_api(prompt, response_format: nil)
     uri = URI(GPT_API_URL)
-    
-    # HTTPヘッダーにAPIキーを設定
-    req = Net::HTTP::Post.new(uri, "Content-Type" => "application/json", "Authorization" => "Bearer #{GPT_API_KEY}")
+    req = Net::HTTP::Post.new(uri, {
+      "Content-Type" => "application/json",
+      "Authorization" => "Bearer #{GPT_API_KEY}"
+    })
 
     payload = {
-      model: MODEL_NAME, # 処理速度とコストのバランスが良いモデルに設定
+      model: MODEL_NAME,
       messages: [
-        { role: "system", content: "あなたはプロのコンテンツライターです。また、『OK配送』と言う軽貨物配送サービスを提供しており、ライティングの目的は軽貨物サービスに発注や業務提携を結びたいユーザーから問い合わせを得ることを目的にしています。生成する文章は、Markdown形式で、読みやすい段落、太字、リストを積極的に使用し、Webコンテンツとして最適化してください。特に、ユーザーが指示した文字数制限と**宣伝/CTAの禁止**の指示を厳格に守り、コンテンツの質を保ちながらも指定された制約を破らないようにしてください。" },
+        { role: "system", content: "あなたはプロの業界特化ライターです。" },
         { role: "user", content: prompt }
       ],
-      # temperatureを少し下げ、クリエイティブ性を抑え、指示に忠実になるようにします
-      temperature: 0.5 
+      temperature: 0.5
     }
-    
-    # JSON出力を強制する場合のオプションを追加
-    payload[:response_format] = response_format if response_format.present?
 
+    payload[:response_format] = response_format if response_format.present?
     req.body = payload.to_json
 
-    begin
-      # 🚨 修正箇所: open_timeout: 60 を追加しました。 接続確立を60秒待つ
-      res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true, read_timeout: 60, open_timeout: 60) do |http| 
-        http.request(req)
-      end
-
-      if res.is_a?(Net::HTTPSuccess)
-        JSON.parse(res.body)
-      else
-        # 🚨 APIエラー発生時の詳細ログ出力 🚨
-        Rails.logger.error("GPT API error (Status: #{res.code}): #{res.body}")
-        nil
-      end
-    rescue Timeout::Error => e
-      Rails.logger.error("GPT API 呼び出し中のタイムアウトエラー: #{e.message} (60秒以内に応答がありませんでした)")
-      nil
-    rescue OpenSSL::SSL::SSLError => e
-      Rails.logger.error("GPT API 呼び出し中のSSLエラー: #{e.message}")
-      nil
-    rescue => e
-      # その他の通信・ネットワークエラーをキャッチ
-      Rails.logger.error("GPT API 呼び出し中の致命的なエラー: #{e.class} - #{e.message}")
-      nil
+    res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true, read_timeout: 60) do |http|
+      http.request(req)
     end
+
+    res.is_a?(Net::HTTPSuccess) ? JSON.parse(res.body) : nil
   end
 end
