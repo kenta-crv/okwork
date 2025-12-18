@@ -8,6 +8,8 @@ Rails.application.routes.draw do
   }
   
   root to: 'tops#index'
+
+  # --- 各ジャンルLPの定義 ---
   get 'cargo', to: 'tops#cargo'
   get 'security', to: 'tops#security'
   get 'construction', to: 'tops#construction'
@@ -16,7 +18,14 @@ Rails.application.routes.draw do
   get 'logistics', to: 'tops#logistics'
   get 'recruit', to: 'tops#recruit'
   get 'app', to: 'tops#app'
-  
+
+  # --- SEO用: ジャンル別コラム階層 (/genre/columns と /genre/columns/:id) ---
+  # index（一覧）と show（詳細）の両方を許可します
+  scope ':genre', constraints: { genre: /cargo|security|cleaning|app|construction/ } do
+    resources :columns, only: [:index, :show], as: :nested_columns
+  end
+
+  # --- 管理機能・汎用リソースとしてのコラム ---
   resources :columns do
     collection do
       get :draft            # ドラフト一覧
@@ -28,16 +37,9 @@ Rails.application.routes.draw do
     end
   end
 
-  # =========================================================
-  # 🚨 修正箇所: Sidekiq Web UIを管理者認証で保護する
-  # =========================================================
+  # --- Sidekiq Web UI ---
   require 'sidekiq/web'
-  
-  # Deviseの認証ヘルパー `authenticate` を使用し、
-  # 現在のユーザーが 'admin' としてログインしている場合のみ許可する
   authenticate :admin do 
     mount Sidekiq::Web, at: "/sidekiq"
   end
-  # =========================================================
-
 end

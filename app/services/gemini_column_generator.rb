@@ -5,126 +5,180 @@ class GeminiColumnGenerator
   require "openssl"
 
   GEMINI_API_KEY = ENV["GEMINI_API_KEY"]
+  # 安定性の高い1.5-flashを使用
   GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
 
-  def self.generate_columns(batch_count: 100)
-    # ターゲット読者（取引したい企業）の関心事に合わせたカテゴリリスト
-    category_list = ["軽貨物パートナー選定", "物流DX・技術連携", "発注リスクと法令遵守", "市場トレンドと展望", "コスト最適化・事例"]
-    
-    max_retries = 3
-    
-    # 🚨 最終解決策：カテゴリインデックスを初期化し、ループごとにローテーションさせる
-    current_category_index = 0
+  GENRE_CONFIG = {
+    cargo: {
+      service_name:  "軽貨物配送サービス",
+      service_brand: "OK配送",
+      service_path:  "/cargo",
+      target: "軽貨物事業者との取引や協業を検討している企業の担当者または経営層（荷主企業やITベンダーなど）",
+      categories: ["課題解決", "選定・比較", "業界理解", "活用イメージ", "不安解消"],
+      exclude: "求職者および軽貨物事業者自身に向けた発信"
+    },
+    security: {
+      service_name:  "警備業務",
+      service_brand: "OK警備",
+      service_path:  "/security",
+      target: "警備業務の外注や切替を検討している企業・施設管理者",
+      categories: ["課題解決", "選定・比較", "業界理解", "活用イメージ", "不安解消"],
+      exclude: "警備員の求人や資格取得を目的とした発信"
+    },
+    cleaning: {
+      service_name:  "清掃業務",
+      service_brand: "OK清掃",
+      service_path:  "/cleaning",
+      target: "清掃業務の外注を検討している法人・施設管理者",
+      categories: ["課題解決", "選定・比較", "業界理解", "活用イメージ", "不安解消"],
+      exclude: "清掃スタッフの求人向け発信"
+    },
+    app: {
+      service_name:  "テレアポ型営業代行",
+      service_brand: "アポ匠",
+      service_path:  "/app",
+      target: "新規商談獲得を外注したいBtoB企業の責任者",
+      categories: ["課題解決", "選定・比較", "業界理解", "活用イメージ", "不安解消"],
+      exclude: "成果報酬型営業の訴求"
+    },
+    ai: {
+      service_name:  "AI活用型ブログ・SEO支援",
+      service_brand: "AI生成BLOG",
+      service_path:  "/ai",
+      target: "SEO集客を効率化・内製化したい企業",
+      categories: ["課題解決", "導入検討", "業界理解", "活用イメージ", "不安解消"],
+      exclude: "個人ブロガー向けの発信"
+    },
+    construction: {
+      service_name:  "建設現場労務支援サービス",
+      service_brand: "OK建設",
+      service_path:  "/construction",
+      target: "建設現場の人手不足に悩む元請・施工会社",
+      categories: ["課題解決", "選定・比較", "業界理解", "活用イメージ", "不安解消"],
+      exclude: "作業員の求人を目的とした発信"
+    }
+  }.freeze
 
-    batch_count.times do
-      # 🚨 ローテーション処理: 実行ごとに強制的にカテゴリを選択させる
-      target_category = category_list[current_category_index]
-      
-      # 次のカテゴリへインデックスを更新 (リストの最後まで行ったら0に戻る)
-      current_category_index = (current_category_index + 1) % category_list.size
+  # ==========================================================
+  # メインメソッド
+  # ==========================================================
+  def self.generate_columns(genre: nil, batch_count: 10)
+    if genre
+      # 特定ジャンルのみ生成する場合
+      config = GENRE_CONFIG.fetch(genre.to_sym)
+      category_list = config[:categories]
+      current_category_index = 0
 
-      # 🚨 プロンプト：ターゲット、難易度の制限、および「強制カテゴリ」を明記
-      prompt = <<~EOS
-        軽貨物配送サービスに関するブログ記事のテーマ、記事概要、SEOキーワード、およびカテゴリを日本語で生成してください。
+      batch_count.times do |i|
+        target_category = category_list[current_category_index]
+        current_category_index = (current_category_index + 1) % category_list.size
+        execute_generation(genre.to_sym, target_category)
         
-        ターゲット読者は**軽貨物事業者との取引や協業を検討している企業の担当者または経営層（荷主企業やITベンダーなど）**です。
-        
-        【最重要指示1：強制カテゴリ】
-        **必ずカテゴリ「#{target_category}」に属するテーマ**を生成してください。
-        
-        【最重要指示2：難易度】
-        テーマは**業界の専門家以外でも理解でき、実務に役立つ汎用的な内容**に限定し、**難易度が高すぎる専門的な議論や学術的な議題は避けてください**。
-        
-        【最重要指示3：目的】
-        彼らが発注や提携の意思決定に役立つ、軽貨物事業者の選定基準、メリット、市場動向、リスク管理に関する内容を抽出してください。
-        
-        求職者および軽貨物事業者自身に向けた発信ではありません。
-        
-        カテゴリは以下のリストから必ず1つ選択してください: #{category_list.join(", ")}
-      EOS
-      
-      response_json_string = nil
-      
-      # ... (リトライ処理は省略、前回と同様) ...
-      max_retries.times do |attempt|
-        # post_to_gemini の引数には、全カテゴリリストを渡す (JSONスキーマのenum制約のため)
-        response_json_string = post_to_gemini(prompt, category_list) 
-        break if response_json_string
-
-        if attempt < max_retries - 1
-          sleep_time = 12
-          Rails.logger.warn(
-            "Gemini API 429発生 (#{attempt + 1}/#{max_retries})。#{sleep_time}秒待機"
-            )
-            sleep(sleep_time)
+        if i < batch_count - 1
+          puts "制限回避のため7秒待機します..."
+          sleep 7
         end
       end
-      
-      next unless response_json_string
+    else
+      # ジャンル指定なしの場合：全ジャンルを均等に生成
+      rounds = (batch_count.to_f / GENRE_CONFIG.size).ceil
+      processed_count = 0
 
-      # ... (JSONパースとDB保存の処理は省略、前回と同様) ...
-      begin
-        data = JSON.parse(response_json_string)
-
-        Column.create!(
-          title:       data["title"],
-          description: data["description"],
-          keyword:     data["keyword"],
-          choice:      data["category"], 
-          status:      "draft"
-        )
-      rescue JSON::ParserError => e
-        Rails.logger.error("JSONパースエラー: #{e.message} - Response: #{response_json_string}")
-        next
-      rescue => e
-        Rails.logger.error("データベース保存エラー: #{e.message}")
-        next
+      rounds.times do |r|
+        GENRE_CONFIG.keys.each do |g|
+          break if processed_count >= batch_count
+          
+          target_category = GENRE_CONFIG[g][:categories].sample
+          execute_generation(g, target_category)
+          processed_count += 1
+          
+          if processed_count < batch_count
+            puts "制限回避のため7秒待機します..."
+            sleep 7
+          end
+        end
       end
     end
   end
 
+  # ==========================================================
+  # 内部実行メソッド（ログ出力あり）
+  # ==========================================================
+  def self.execute_generation(genre, target_category)
+    config = GENRE_CONFIG.fetch(genre)
+    puts "--- [#{genre}] 生成開始 カテゴリ: #{target_category} ---"
 
-  # post_to_gemini の内容は変更なし (タイムアウト設定維持)
-  def self.post_to_gemini(prompt, category_list = nil)
+    prompt = <<~EOS
+      #{config[:service_name]}に関する企業向けブログ記事を日本語で作成してください。
+      ターゲット読者：#{config[:target]}
+      記事カテゴリ：「#{target_category}」
+      記事の目的：
+      ・#{config[:service_brand]}のサービス内容を自然に理解してもらう
+      ・最終的に「問い合わせしてみよう」と思ってもらう
+      重要な条件：
+      ・#{config[:exclude]}ではありません
+      ・売り込みすぎず、実務目線で分かりやすく
+      ・記事の最後は「#{config[:service_brand]}（#{config[:service_path]}）では〜」という形で自然に締めてください
+      以下のJSON形式で出力してください。
+    EOS
+
+    response_json_string = post_to_gemini(prompt)
+    
+    if response_json_string
+      begin
+        data = JSON.parse(response_json_string)
+        Column.create!(
+          title:       data["title"],
+          description: data["description"],
+          keyword:     data["keyword"],
+          choice:      target_category,
+          genre:       genre.to_s,
+          status:      "draft"
+        )
+        puts "成功: [#{genre}] #{data["title"]}"
+      rescue => e
+        puts "エラー: 保存失敗 (#{e.message})"
+      end
+    else
+      puts "警告: APIから応答がありませんでした"
+    end
+  end
+
+  # =========================
+  # Gemini API 実行
+  # =========================
+  def self.post_to_gemini(prompt)
     uri = URI(GEMINI_API_URL)
     uri.query = URI.encode_www_form(key: GEMINI_API_KEY)
 
     req = Net::HTTP::Post.new(uri, "Content-Type" => "application/json")
-
-    category_schema = { "type": "string" }
-    category_schema["enum"] = category_list if category_list.present? 
-
     req.body = {
-      contents: [ { parts: [ { text: prompt } ] } ],
+      contents: [{ parts: [{ text: prompt }] }],
       generationConfig: {
-        "responseMimeType": "application/json",
-        "responseSchema": {
-          "type": "object",
-          "properties": {
-            "title":       { "type": "string" },
-            "description": { "type": "string" },
-            "keyword":     { "type": "string" },
-            "category":    category_schema
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: "object",
+          properties: {
+            title:       { type: "string" },
+            description: { type: "string" },
+            keyword:     { type: "string" }
           },
-          "required": ["title", "description", "keyword", "category"]
+          required: %w[title description keyword]
         }
       }
     }.to_json
 
-    # 504対策：read_timeoutを120秒に延長
-    res = Net::HTTP.start(uri.hostname, uri.port, 
-                          use_ssl: true, 
-                          verify_mode: OpenSSL::SSL::VERIFY_NONE,
-                          read_timeout: 120) do |http| 
-      http.request(req)
-    end
-
-    if res.is_a?(Net::HTTPSuccess)
-      api_response = JSON.parse(res.body)
-      api_response.dig("candidates", 0, "content", "parts", 0, "text")
-    else
-      Rails.logger.error("Gemini API error (Status: #{res.code}): #{res.body}")
-      nil
+    begin
+      res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(req) }
+      if res.is_a?(Net::HTTPSuccess)
+        return JSON.parse(res.body).dig("candidates", 0, "content", "parts", 0, "text")
+      else
+        puts "Gemini API Error: #{res.code}"
+        return nil
+      end
+    rescue => e
+      puts "通信エラー: #{e.message}"
+      return nil
     end
   end
 end
