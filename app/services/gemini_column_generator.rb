@@ -1,11 +1,9 @@
-# app/services/gemini_column_generator.rb
 class GeminiColumnGenerator
   require "net/http"
   require "json"
   require "openssl"
 
   GEMINI_API_KEY = ENV["GEMINI_API_KEY"]
-  # 安定性の高い1.5-flashを使用
   GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent"
 
   GENRE_CONFIG = {
@@ -59,51 +57,43 @@ class GeminiColumnGenerator
     }
   }.freeze
 
-  # ==========================================================
-  # メインメソッド
-  # ==========================================================
   def self.generate_columns(genre: nil, batch_count: 10)
+    success_count = 0
+
     if genre
-      # 特定ジャンルのみ生成する場合
       config = GENRE_CONFIG.fetch(genre.to_sym)
-      category_list = config[:categories]
-      current_category_index = 0
+      categories = config[:categories]
+      index = 0
 
       batch_count.times do |i|
-        target_category = category_list[current_category_index]
-        current_category_index = (current_category_index + 1) % category_list.size
-        execute_generation(genre.to_sym, target_category)
-        
-        if i < batch_count - 1
-          puts "制限回避のため7秒待機します..."
-          sleep 15
-        end
+        target_category = categories[index]
+        index = (index + 1) % categories.size
+
+        success_count += 1 if execute_generation(genre.to_sym, target_category)
+
+        sleep 7 if i < batch_count - 1
       end
     else
-      # ジャンル指定なしの場合：全ジャンルを均等に生成
-      rounds = (batch_count.to_f / GENRE_CONFIG.size).ceil
-      processed_count = 0
+      genre_list = GENRE_CONFIG.keys.shuffle
+      processed = 0
 
-      rounds.times do |r|
-        GENRE_CONFIG.keys.each do |g|
-          break if processed_count >= batch_count
-          
+      while processed < batch_count
+        genre_list.each do |g|
+          break if processed >= batch_count
+
           target_category = GENRE_CONFIG[g][:categories].sample
-          execute_generation(g, target_category)
-          processed_count += 1
-          
-          if processed_count < batch_count
-            puts "制限回避のため7秒待機します..."
-            sleep 7
-          end
+          success_count += 1 if execute_generation(g, target_category)
+          processed += 1
+
+          sleep 7 if processed < batch_count
         end
+        genre_list.shuffle!
       end
     end
+
+    success_count
   end
 
-  # ==========================================================
-  # 内部実行メソッド（ログ出力あり）
-  # ==========================================================
   def self.execute_generation(genre, target_category)
     config = GENRE_CONFIG.fetch(genre)
     puts "--- [#{genre}] 生成開始 カテゴリ: #{target_category} ---"
@@ -112,47 +102,50 @@ class GeminiColumnGenerator
       #{config[:service_name]}に関する企業向けブログ記事を日本語で作成してください。
       ターゲット読者：#{config[:target]}
       記事カテゴリ：「#{target_category}」
+
+      記事タイトルには必ず「#{config[:service_name]}」という文言を含めてください。
+
       記事の目的：
       ・#{config[:service_brand]}のサービス内容を自然に理解してもらう
       ・最終的に「問い合わせしてみよう」と思ってもらう
+
       重要な条件：
       ・#{config[:exclude]}ではありません
       ・売り込みすぎず、実務目線で分かりやすく
       ・記事の最後は「#{config[:service_brand]}（#{config[:service_path]}）では〜」という形で自然に締めてください
-      
-      keyword項目の制約：
-      ・SEOを意識したキーワードを3〜5個選定してください。
-      ・必ず「カンマ区切り」の形式で出力してください（例：キーワード1,キーワード2,キーワード3）。
-      ・文章や説明文は含めないでください。
 
-      以下のJSON形式で出力してください。
+      keyword項目の制約：
+      ・SEOを意識したキーワードを3〜5個選定
+      ・カンマ区切りのみで出力（説明文は禁止）
+
+      以下のJSON形式のみで出力してください。
     EOS
 
-    response_json_string = post_to_gemini(prompt)
-    
-    if response_json_string
-      begin
-        data = JSON.parse(response_json_string)
-        Column.create!(
-          title:       data["title"],
-          description: data["description"],
-          keyword:     data["keyword"],
-          choice:      target_category,
-          genre:       genre.to_s,
-          status:      "draft"
-        )
-        puts "成功: [#{genre}] #{data["title"]}"
-      rescue => e
-        puts "エラー: 保存失敗 (#{e.message})"
-      end
-    else
-      puts "警告: APIから応答がありませんでした"
-    end
+    response_text = post_to_gemini(prompt)
+    return false unless response_text
+
+    json_text = response_text[/\{.*\}/m]
+    return false unless json_text
+
+    data = JSON.parse(json_text)
+
+    Column.create!(
+      title:       data["title"],
+      description: data["description"],
+      keyword:     data["keyword"],
+      choice:      target_category,
+      genre:       genre.to_s,
+      status:      "draft"
+    )
+
+    puts "成功: [#{genre}] #{data['title']}"
+    true
+  rescue => e
+    puts "保存失敗 genre=#{genre} error=#{e.message}"
+    puts response_text
+    false
   end
 
-  # =========================
-  # Gemini API 実行
-  # =========================
   def self.post_to_gemini(prompt)
     uri = URI(GEMINI_API_URL)
     uri.query = URI.encode_www_form(key: GEMINI_API_KEY)
@@ -161,33 +154,19 @@ class GeminiColumnGenerator
     req.body = {
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: "object",
-          properties: {
-            title:       { type: "string" },
-            description: { type: "string" },
-            keyword:     { 
-              type: "string",
-              description: "Comma-separated SEO keywords only."
-            }
-          },
-          required: %w[title description keyword]
-        }
+        responseMimeType: "application/json"
       }
     }.to_json
 
-    begin
-      res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(req) }
-      if res.is_a?(Net::HTTPSuccess)
-        return JSON.parse(res.body).dig("candidates", 0, "content", "parts", 0, "text")
-      else
-        puts "Gemini API Error: #{res.code}"
-        return nil
-      end
-    rescue => e
-      puts "通信エラー: #{e.message}"
-      return nil
+    res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
+      http.request(req)
     end
+
+    return nil unless res.is_a?(Net::HTTPSuccess)
+
+    JSON.parse(res.body).dig("candidates", 0, "content", "parts", 0, "text")
+  rescue => e
+    puts "通信エラー: #{e.message}"
+    nil
   end
 end

@@ -91,16 +91,15 @@ end
   end
 
     # ▼ ① Gemini自動生成（UIボタンから呼ばれる）
-  def generate_gemini
-    # params[:batch]が渡されていればその値を使い、なければデフォルトの5を使う
-    # params[:batch]は文字列なので、to_iで整数に変換して渡す
-    batch = params[:batch] || 20
-    created = GeminiColumnGenerator.generate_columns(batch_count: batch.to_i)
-    # 実際に何件作成できたかはGeminiColumnGeneratorからは返されていないため、
-    # ここでは仮にbatchの回数を使っている可能性があります。
-    # created変数が正しくない場合は、GeminiColumnGeneratorの戻り値を修正する必要があります。
-    redirect_to draft_columns_path, notice: "#{created}件生成しました"
-  end
+def generate_gemini
+  # params[:batch]が渡されていればその値を使い、なければデフォルトの20を使う
+  batch = params[:batch] || 20
+  
+  # 修正したサービスを呼び出し。成功件数が created に代入される
+  created = GeminiColumnGenerator.generate_columns(batch_count: batch.to_i)
+  
+  redirect_to draft_columns_path, notice: "#{created}件生成しました"
+end
 
 
 

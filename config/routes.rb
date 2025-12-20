@@ -25,6 +25,8 @@ Rails.application.routes.draw do
     resources :columns, only: [:index, :show], as: :nested_columns
   end
 
+  get 'draft/progress', to: 'draft#progress'
+
   # --- 管理機能・汎用リソースとしてのコラム ---
   resources :columns do
     collection do
