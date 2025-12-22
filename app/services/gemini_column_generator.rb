@@ -5,6 +5,7 @@ class GeminiColumnGenerator
 
   GEMINI_API_KEY = ENV["GEMINI_API_KEY"]
   GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent"
+  MAX_RETRIES = 3
 
   GENRE_CONFIG = {
     cargo: {
@@ -70,7 +71,6 @@ class GeminiColumnGenerator
         index = (index + 1) % categories.size
 
         success_count += 1 if execute_generation(genre.to_sym, target_category)
-
         sleep 7 if i < batch_count - 1
       end
     else
@@ -112,37 +112,57 @@ class GeminiColumnGenerator
       重要な条件：
       ・#{config[:exclude]}ではありません
       ・売り込みすぎず、実務目線で分かりやすく
-      ・記事の最後は「#{config[:service_brand]}（#{config[:service_path]}）では〜」という形で自然に締めてください
+      ・記事の最後は「#{config[:service_brand]}（#{config[:service_path]}）では〜」で締める
 
-      keyword項目の制約：
-      ・SEOを意識したキーワードを3〜5個選定
-      ・カンマ区切りのみで出力（説明文は禁止）
+      keyword条件：
+      ・SEOキーワードを3〜5個
+      ・カンマ区切りのみ（説明文禁止）
 
-      以下のJSON形式のみで出力してください。
+      【出力ルール】
+      以下のJSONを完全にそのままの構造で出力してください。
+      キーの省略・追加は禁止です。
+
+      {
+        "title": "記事タイトル",
+        "description": "記事本文（800〜1200文字）",
+        "keyword": "キーワード1,キーワード2,キーワード3"
+      }
     EOS
 
-    response_text = post_to_gemini(prompt)
-    return false unless response_text
+    retries = 0
+    loop do
+      response_text = post_to_gemini(prompt)
+      return false unless response_text
 
-    json_text = response_text[/\{.*\}/m]
-    return false unless json_text
+      json_text = response_text[/\{.*\}/m]
+      next if json_text.nil?
 
-    data = JSON.parse(json_text)
+      data = JSON.parse(json_text) rescue nil
+      next if data.nil?
 
-    Column.create!(
-      title:       data["title"],
-      description: data["description"],
-      keyword:     data["keyword"],
-      choice:      target_category,
-      genre:       genre.to_s,
-      status:      "draft"
-    )
+      required_keys = %w[title description keyword]
+      missing = required_keys.select { |k| data[k].blank? }
 
-    puts "成功: [#{genre}] #{data['title']}"
-    true
-  rescue => e
-    puts "保存失敗 genre=#{genre} error=#{e.message}"
-    puts response_text
+      if missing.empty?
+        Column.create!(
+          title:       data["title"],
+          description: data["description"],
+          keyword:     data["keyword"],
+          choice:      target_category,
+          genre:       genre.to_s,
+          status:      "draft"
+        )
+        puts "成功: [#{genre}] #{data['title']}"
+        return true
+      else
+        retries += 1
+        puts "不完全JSON #{retries}回目: missing=#{missing.join(', ')}"
+        sleep 3
+        break if retries >= MAX_RETRIES
+      end
+    end
+
+    puts "生成失敗: 必須キーが揃わず"
     false
   end
 
