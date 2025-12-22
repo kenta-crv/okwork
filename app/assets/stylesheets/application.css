@@ -2436,3 +2436,71 @@ small {
     font-size: 20px;
   }
 }
+
+
+
+/* 外側セクション（グレー背景） */
+.section-company {
+  background: #f3f4f6;
+  padding: 80px 0;
+}
+
+/* 浮き上がるカード */
+.company-card {
+  max-width: 1000px;
+  margin: 0 auto;
+  background: #fff;
+  padding: 64px 64px 72px;
+  border-radius: 12px;
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.08),
+    0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+/* 見出し */
+.section-title {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.section-lead {
+  color: #666;
+  margin-bottom: 40px;
+  font-size: 15px;
+}
+
+/* テーブル */
+.company-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.company-table th,
+.company-table td {
+  padding: 18px 0;
+  border-bottom: 1px solid #e6e6e6;
+  vertical-align: top;
+}
+
+.company-table th {
+  width: 180px;
+  font-weight: 600;
+  color: #555;
+}
+
+.company-table td {
+  color: #222;
+  line-height: 1.8;
+}
+
+/* レスポンシブ */
+@media (max-width: 768px) {
+  .company-card {
+    padding: 40px 24px;
+  }
+
+  .company-table th {
+    width: 120px;
+  }
+}
