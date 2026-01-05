@@ -224,7 +224,8 @@
             .col-lg-4.col-md-6
               = link_to column_path(column) do
                 .cards-moos-card
-                  /= image_tag column.file, class: "cards-moos-img", alt: column.title
+                  - if column.file.present?
+                   = image_tag column.file.to_s, width:"100%", class: 'column-thumb', alt: column.title
                   h3.cards-moos-heading
                     = column.title
                   p.cards-moos-desc

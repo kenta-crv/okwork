@@ -7,9 +7,9 @@ class Column < ApplicationRecord
   friendly_id :code, use: :slugged, slug_column: :code
 
   # ビューやヘルパーが内部で .slug を呼んだときのために定義
-  def slug
-    code
-  end
+  #def slug
+  #  code
+  #end
 
   # --- 既存の定数 ---
   GENRE_MAPPING = {
