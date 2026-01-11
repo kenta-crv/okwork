@@ -1,6 +1,34 @@
 class Column < ApplicationRecord
   mount_uploader :file, ImagesUploader
-  
+  belongs_to :parent, class_name: "Column", optional: true
+  has_many :children, class_name: "Column", foreign_key: :parent_id
+  # =========================
+  # Scopes（よく使う絞り込み）
+  # =========================
+  scope :pillars, -> { where(article_type: "pillar") }
+  scope :clusters, -> { where(article_type: "cluster") }
+
+  # =========================
+  # Instance methods
+  # =========================
+
+  # 親かどうか
+  def pillar?
+    article_type == "pillar"
+  end
+
+  # 子かどうか
+  def cluster?
+    article_type == "cluster"
+  end
+
+  # 子記事が上限に達しているか
+  def cluster_full?
+    return false unless pillar?
+    return false if cluster_limit.blank?
+
+    children.count >= cluster_limit
+  end
   # FriendlyIdの設定
   extend FriendlyId
   # slugとして使うカラムを :code に固定し、FriendlyIdにそれを教える

@@ -160,7 +160,20 @@ class ColumnsController < ApplicationController
 
   def column_params
     params.require(:column).permit(
-      :title, :file, :choice, :keyword, :description, :genre, :code, :body, :status
+      :title, 
+      :file, 
+      :choice, 
+      :keyword, 
+      :description, 
+      :genre, 
+      :code, 
+      :body, 
+      :status,
+      :article_type,
+      :parent_id, 
+      :cluster_limit,
+      :article_type,
+      :parent_id,
     )
   end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_01_04_063939) do
+ActiveRecord::Schema.define(version: 2026_01_11_130341) do
 
   create_table "admins", force: :cascade do |t|
     t.string "email", default: "", null: false
@@ -37,8 +37,27 @@ ActiveRecord::Schema.define(version: 2026_01_04_063939) do
     t.string "service_type", default: "cargo", null: false
     t.string "genre"
     t.string "code"
+    t.string "article_type", default: "cluster", null: false
+    t.integer "parent_id"
+    t.integer "cluster_limit"
+    t.index ["article_type"], name: "index_columns_on_article_type"
     t.index ["code"], name: "index_columns_on_code", unique: true
+    t.index ["parent_id"], name: "index_columns_on_parent_id"
     t.index ["service_type"], name: "index_columns_on_service_type"
+  end
+
+  create_table "contracts", force: :cascade do |t|
+    t.string "company"
+    t.string "name"
+    t.string "tel"
+    t.string "email"
+    t.string "address"
+    t.string "url"
+    t.string "service"
+    t.string "period"
+    t.string "message"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
   end
 
   create_table "friendly_id_slugs", force: :cascade do |t|

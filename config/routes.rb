@@ -26,6 +26,7 @@ Rails.application.routes.draw do
 
   get 'draft/progress', to: 'draft#progress'
 
+  resources :contracts
   # --- 管理機能・汎用リソースとしてのコラム ---
   # 基本的なCRUDはこちらを使用
   resources :columns do

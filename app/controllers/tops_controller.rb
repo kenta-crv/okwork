@@ -2,15 +2,33 @@ class TopsController < ApplicationController
   before_action :set_breadcrumbs
   before_action :set_columns, only: [:index, :cargo, :security, :construction, :cleaning, :event, :logistics, :app, :ads]
 
-  def index; end
-  def cargo; end
-  def security; end
-  def construction; end
-  def cleaning; end
-  def event; end
-  def logistics; end
-  def app; end
-  def ads; end
+  def index
+    @contract = Contract.new
+  end
+  def cargo
+    @contract = Contract.new
+  end
+  def security
+    @contract = Contract.new
+  end
+  def construction
+    @contract = Contract.new
+  end
+  def cleaning
+    @contract = Contract.new
+  end
+  def event
+    @contract = Contract.new
+  end
+  def logistics
+    @contract = Contract.new
+  end
+  def app
+    @contract = Contract.new
+  end
+  def ads
+    @contract = Contract.new
+  end
 
   private
 
