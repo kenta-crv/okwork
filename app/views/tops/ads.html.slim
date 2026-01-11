@@ -41,31 +41,52 @@ section.hero-main-section.position-relative(style="background-image: url(#{asset
         .hero-main-right.p-4.rounded-3
           h3.hero-main-trial.text-center
             | ＼まずは気軽にお問い合わせから！／
-          form#hero-main-form.hero-main-form.mt-3.p-4.rounded-3
-            .row.g-3
-              .col-12
-                label.form-label.hero-main-label
-                  | 会社名 
-                  span.required-badge 必須
-                input.form-control.hero-main-input[type="text" placeholder="株式会社〇〇〇〇" required=""]
-              .col-12
-                label.form-label.hero-main-label
-                  | お名前 
-                  span.required-badge 必須
-                input.form-control.hero-main-input[type="text" placeholder="山田太郎" required=""]
-              .col-12
-                label.form-label.hero-main-label
-                  | 会社のメールアドレス 
-                  span.required-badge 必須
-                input.form-control.hero-main-input[type="email" placeholder="test@example.com" required=""]
-              .col-12
-                label.form-label.hero-main-label
-                  | 電話番号 
-                  span.required-badge 必須
-                input.form-control.hero-main-input[type="tel" placeholder="050-1234-5678" required=""]
-              .col-12
-                button.btn.hero-main-submit.w-100[type="submit"]
-                  | 問い合わせする
+          = form_with model: @contract, url: contracts_path, local: true, html: { id: "hero-main-top", class: "hero-main-form mt-3 p-4 rounded-3" } do |f|
+                .row.g-3
+                  .col-12
+                    label.form-label.hero-main-label
+                      | 会社名 
+                      span.required-badge
+                        | 必須
+                    = f.text_field :company, class: "form-control hero-main-input", placeholder: "株式会社〇〇〇〇", required: true
+                  .col-12
+                    label.form-label.hero-main-label
+                      | ご担当者様名
+                      span.required-badge
+                        | 必須
+                    = f.text_field :name, class: "form-control hero-main-input", placeholder: "山田太郎", required: true
+                  .col-12
+                    label.form-label.hero-main-label
+                      | 電話番号 
+                      span.required-badge
+                        | 必須
+                    = f.telephone_field :tel, class: "form-control hero-main-input", placeholder: "050-1234-5678", required: true
+                  .col-12
+                    label.form-label.hero-main-label
+                      | 住所
+                      span.required-badge
+                        | 必須
+                    = f.text_field :address, class: "form-control hero-main-input", placeholder: "東京都東京市東京町1-1-1東京ビル111", required: true
+                  .col-12
+                    label.form-label.hero-main-label
+                      | URL
+                      span.required-badge
+                        | 必須
+                    = f.url_field :url, class: "form-control hero-main-input", placeholder: "https://ri-plus.jp/", required: true
+                  .col-12
+                    label.form-label.hero-main-label
+                      | メールアドレス 
+                      span.required-badge
+                        | 必須
+                    = f.email_field :email, class: "form-control hero-main-input", placeholder: "test@example.com", required: true
+                  .col-12
+                    label.form-label.hero-main-label
+                      | 備考・要望 
+                      span.required-badge
+                        | 任意
+                    = f.text_area :message, class: "form-control hero-main-input", placeholder:"（例）お問い合わせ内容"
+                  .col-12
+                    = f.submit "まずは無料で見積から", class: "btn hero-main-submit w-100"
   .hero-main-overlay
 
 / ブランドマーク表示はそのまま
@@ -244,7 +265,7 @@ section#case.cards-moos-section.py-5
               h3.cards-moos-heading
                 = column.title
               p.cards-moos-desc
-                = column.description
+                = truncate(column.description, length: 200)
     .mt-4
       = columns_index_link("ads", "広告運用の記事一覧を見る")
 
@@ -321,32 +342,52 @@ section#inquiry
       .hero-main-right.p-4.rounded-3
         h3.hero-main-trial2.text-center
           | ＼まずはご相談ください！／
-        form#hero-main-form.hero-main-form.mt-3.p-4.rounded-3
-          .row.g-3
-            .col-12
-              label.form-label.hero-main-label
-                | 会社名 
-                span.required-badge 必須
-              input.form-control.hero-main-input[type="text" placeholder="株式会社〇〇〇〇" required=""]
-            .col-12
-              label.form-label.hero-main-label
-                | お名前 
-                span.required-badge 必須
-              input.form-control.hero-main-input[type="text" placeholder="山田太郎" required=""]
-            .col-12
-              label.form-label.hero-main-label
-                | 会社のメールアドレス 
-                span.required-badge 必須
-              input.form-control.hero-main-input[type="email" placeholder="test@example.com" required=""]
-            .col-12
-              label.form-label.hero-main-label
-                | 電話番号 
-                span.required-badge 必須
-              input.form-control.hero-main-input[type="tel" placeholder="050-1234-5678" required=""]
-            .col-12
-              button.btn.hero-main-submit.w-100[type="submit"]
-                | まずは気軽に相談から
-
+        = form_with model: @contract, url: contracts_path, local: true, html: { id: "hero-main-top", class: "hero-main-form mt-3 p-4 rounded-3" } do |f|
+                .row.g-3
+                  .col-12
+                    label.form-label.hero-main-label
+                      | 会社名 
+                      span.required-badge
+                        | 必須
+                    = f.text_field :company, class: "form-control hero-main-input", placeholder: "株式会社〇〇〇〇", required: true
+                  .col-12
+                    label.form-label.hero-main-label
+                      | ご担当者様名
+                      span.required-badge
+                        | 必須
+                    = f.text_field :name, class: "form-control hero-main-input", placeholder: "山田太郎", required: true
+                  .col-12
+                    label.form-label.hero-main-label
+                      | 電話番号 
+                      span.required-badge
+                        | 必須
+                    = f.telephone_field :tel, class: "form-control hero-main-input", placeholder: "050-1234-5678", required: true
+                  .col-12
+                    label.form-label.hero-main-label
+                      | 住所
+                      span.required-badge
+                        | 必須
+                    = f.text_field :address, class: "form-control hero-main-input", placeholder: "東京都東京市東京町1-1-1東京ビル111", required: true
+                  .col-12
+                    label.form-label.hero-main-label
+                      | URL
+                      span.required-badge
+                        | 必須
+                    = f.url_field :url, class: "form-control hero-main-input", placeholder: "https://ri-plus.jp/", required: true
+                  .col-12
+                    label.form-label.hero-main-label
+                      | メールアドレス 
+                      span.required-badge
+                        | 必須
+                    = f.email_field :email, class: "form-control hero-main-input", placeholder: "test@example.com", required: true
+                  .col-12
+                    label.form-label.hero-main-label
+                      | 備考・要望 
+                      span.required-badge
+                        | 任意
+                    = f.text_area :message, class: "form-control hero-main-input", placeholder:"（例）お問い合わせ内容"
+                  .col-12
+                    = f.submit "まずは無料で見積から", class: "btn hero-main-submit w-100"
 
 / company overview block
 .section-company
