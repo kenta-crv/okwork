@@ -203,13 +203,13 @@ def generate_from_selected
 end
 
 def generate_from_pillar
-  # params[:id] が数値（ID）か文字列（code）か不明なため、find_by で両方対応させる
   @column = Column.find_by(id: params[:id]) || Column.find_by!(code: params[:id])
 
-  # 生成開始
-  GeminiColumnGenerator.generate_columns(batch_count: 25, pillar_id: @column.id)
+  # 重い処理（GeminiColumnGenerator）を Job に丸投げする
+  # これで Controller は一瞬で完了し、バックグラウンドで25件生成される
+  GenerateChildColumnsJob.perform_later(@column.id, 25)
   
-  redirect_to column_path(@column), notice: "この記事に紐づく子記事（25件）の生成を開始しました。ドラフト一覧を確認してください。"
+  redirect_to column_path(@column), notice: "この記事に紐づく子記事（25件）の生成をバックグラウンドで開始しました。しばらくしてからドラフト一覧を確認してください。"
 end
 
   private
