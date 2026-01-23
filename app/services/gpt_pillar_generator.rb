@@ -35,12 +35,24 @@ class GptPillarGenerator
 
     puts "▶ 統合生成開始: #{column.title} (判定: #{target_category})"
 
-    # 1. meta情報生成 (スラッグ短縮指示を追加)
+    # 1. meta情報生成 (英語スラッグ生成を最優先に指示)
     meta_data = generate_meta_info(column, target_category)
     
+    # --- 保存前の最終クレンジング (SEO観点で不正な文字を排除) ---
+    # 日本語が含まれていようがいまいが、英数字とハイフン以外を消去して英単語化を強制
+    clean_code = meta_data["code"].to_s.downcase
+                  .gsub(/[^a-z0-9\s\-]/, '') # 英数字、スペース、ハイフン以外を削除
+                  .strip
+                  .gsub(/[\s_]+/, '-')       # スペースやアンダースコアをハイフンに
+                  .gsub(/-+/, '-')           # 連続ハイフンを1つに
+                  .gsub(/\A-|-\z/, '')       # 先頭と末尾のハイフンを削除
+
+    # 万が一空になった場合のフォールバック
+    clean_code = "article-#{column.id.to_s.split('-').first}" if clean_code.blank?
+
     # 2. DB中間保存
     column.update!(
-      code: meta_data["code"],
+      code: clean_code,
       description: meta_data["description"],
       keyword: meta_data["keyword"],
       choice: target_category,
@@ -61,7 +73,7 @@ class GptPillarGenerator
       status: "completed" 
     )
 
-    puts "✅ 全工程完了: #{column.title}"
+    puts "✅ スラッグ確定: #{clean_code}"
     true
   end
 
@@ -77,26 +89,27 @@ class GptPillarGenerator
 
   def self.generate_meta_info(column, category)
     prompt = <<~PROMPT
-      以下の条件に基づき、SEOに強い「親記事（pillar記事）」のメタ情報を作成してください。
-      出力は必ず「1つのJSONオブジェクトのみ」とし、余計な解説は不要です。
+      以下の記事のSEO用メタ情報を生成してください。
+      出力は必ず1つのJSONオブジェクトのみ。解説は不要です。
 
       【入力情報】
       タイトル: #{column.title}
-      業種カテゴリ: #{category}
+      業種: #{category}
 
-      【スラッグ(code)生成の厳守ルール】
-      ・意味が通じる範囲で「可能な限り短く」すること。
-      ・ストップワード（for, the, and, of, about等）は除外する。
-      ・最大でも3〜5単語、20〜30文字程度に抑える。
-      ・例： 「法人向け日常清掃のメリットと業者選びのポイント」 
-            ダメな例：daily-cleaning-benefits-outsourcing-corporate-services-pricing-selection
-            良い例：corporate-cleaning-guide
+      【重要ルール: スラッグ(code)の生成】
+      1. タイトルの意味を汲み取った「英語」で作成すること。
+      2. 日本語（漢字・ひらがな・カタカナ）は絶対に含めない。
+      3. 小文字の英数字とハイフンのみを使用すること。
+      4. 3〜5単語程度で、SEOに適切なキーワードを含めること。
+      5. 例: 「建設業の求人募集の書き方」 
+            NG: kensetsu-kyujin-kakikata
+            OK: construction-job-posting-guide
 
-      【出力JSON形式】
+      【出力形式】
       {
-        "code": "短縮された英単語ハイフン繋ぎのスラッグ",
-        "description": "120文字程度のSEO用ディスクリプション",
-        "keyword": "メインキーワード, 関連キーワード1, 関連キーワード2"
+        "code": "english-slug-here",
+        "description": "120文字程度のディスクリプション",
+        "keyword": "キーワード1, キーワード2"
       }
     PROMPT
 
@@ -135,7 +148,7 @@ class GptPillarGenerator
     payload = {
       model: MODEL_NAME,
       messages: [
-        { role: "system", content: "あなたは特定の業界知識に深いSEO専門ライターです。" },
+        { role: "system", content: "あなたは特定の業界知識に深いSEO専門ライターです。スラッグは必ず英単語を使用します。" },
         { role: "user", content: prompt }
       ],
       temperature: 0.3
@@ -147,9 +160,6 @@ class GptPillarGenerator
     res.is_a?(Net::HTTPSuccess) ? JSON.parse(res.body) : nil
   end
 
-  # ==========================================================
-  # 各種プロンプト定義（修正なし）
-  # ==========================================================
   def self.pillar_structure_prompt(column, category, child_columns)
     child_titles = child_columns.map(&:title).join("\n- ")
     <<~PROMPT

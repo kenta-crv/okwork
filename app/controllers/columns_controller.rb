@@ -30,49 +30,46 @@ end
 # app/controllers/columns_controller.rb
 
 def show
-  # ID または code(スラッグ) で検索
-  @column = Column.find_by(id: params[:id]) || Column.find_by!(code: params[:id])
+    # set_column で既に @column は取得済みのため、find_by は不要です。
 
-  # --- SEO対策: 正規URLへのリダイレクト ---
-  is_valid_genre = @column.genre.present? && @column.genre.match?(/cargo|security|cleaning|app|construction/)
+    # --- SEO対策: 正規URLへのリダイレクト ---
+    is_valid_genre = @column.genre.present? && @column.genre.match?(/cargo|security|cleaning|app|construction/)
+    
+    correct_path = if is_valid_genre
+                     nested_column_path(genre: @column.genre, id: @column.code)
+                   else
+                     column_path(@column)
+                   end
+
+    if request.path != correct_path
+      return redirect_to correct_path, status: :moved_permanently
+    end
+
+    # --- 親記事（pillar）の場合は子記事を取得 ---
+    if @column.article_type == "pillar"
+      @children = @column.children.where.not(status: "draft").order(updated_at: :desc)
+    else
+      @children = []
+    end
+
+    # --- Markdown 処理 ---
+    markdown_body = @column.body.presence || "## 記事はまだ生成されていません。"
+    raw_html_body = Kramdown::Document.new(markdown_body).to_html
+
+    sanitized_html_body = raw_html_body
+      .gsub(/<span[^>]*>|<\/span>/, '')
+      .gsub(/ style=\"[^\"]*\"/, '')
+
+    @headings = []
+    @column_body_with_ids = sanitized_html_body.gsub(/<(h[2-4])>(.*?)<\/\1>/m) do
+      tag  = Regexp.last_match(1)
+      text = Regexp.last_match(2)
+      idx = @headings.size
+      @headings << { tag: tag, text: text, id: "heading-#{idx}", level: tag[1].to_i }
+      "<#{tag} id='heading-#{idx}'>#{text}</#{tag}>"
+    end
+  end
   
-  correct_path = if is_valid_genre
-                   nested_column_path(genre: @column.genre, id: @column.code)
-                 else
-                   column_path(@column)
-                 end
-
-  if request.path != correct_path
-    return redirect_to correct_path, status: :moved_permanently
-  end
-
-  # --- 親記事（pillar）の場合は子記事を取得 ---
-  if @column.article_type == "pillar"
-    # ここを status: "approved" から where.not(status: "draft") に変更
-    # これにより "approved"（生成中）も "completed"（完了）も表示される
-    @children = @column.children.where.not(status: "draft").order(updated_at: :desc)
-  else
-    @children = []
-  end
-
-  # --- Markdown 処理 ---
-  markdown_body = @column.body.presence || "## 記事はまだ生成されていません。"
-  raw_html_body = Kramdown::Document.new(markdown_body).to_html
-
-  sanitized_html_body = raw_html_body
-    .gsub(/<span[^>]*>|<\/span>/, '')
-    .gsub(/ style=\"[^\"]*\"/, '')
-
-  @headings = []
-  @column_body_with_ids = sanitized_html_body.gsub(/<(h[2-4])>(.*?)<\/\1>/m) do
-    tag  = Regexp.last_match(1)
-    text = Regexp.last_match(2)
-    idx = @headings.size
-    @headings << { tag: tag, text: text, id: "heading-#{idx}", level: tag[1].to_i }
-    "<#{tag} id='heading-#{idx}'>#{text}</#{tag}>"
-  end
-end
-
   def new
     @column = Column.new
   end
