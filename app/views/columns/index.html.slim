@@ -1,44 +1,56 @@
-/- set_meta_tags  title: ''
-/- set_meta_tags  description: ''
+/- set_meta_tags title: ''
+/- set_meta_tags description: ''
 
 - if admin_signed_in?
- .row.center
-  .col-sm-4
-    = button_to "親記事生成 (最大10件)", generate_pillar_columns_path(batch: 10), method: :post, class: "btn btn-warning"
-  .col-sm-4
-    = button_to "子記事生成 (最大25件)", generate_gemini_columns_path(batch: 20), method: :post, class: "btn btn-primary"
-  .col-sm-4 
-    = link_to "ドラフト一覧を見る", draft_columns_path, class: "btn btn-secondary"
+  .row.center style="margin-bottom: 20px;"
+    .col-sm-4
+      = link_to "ドラフト一覧を見る", draft_columns_path, class: "btn btn-secondary"
+    
+    / 記事タイプ切り替えボタン
+    .col-sm-8 style="display: flex; gap: 10px; justify-content: center;"
+      = link_to "すべて表示", columns_path(genre: params[:genre]), class: "btn #{params[:article_type].blank? ? 'btn-dark' : 'btn-outline-dark'}"
+      = link_to "親記事(Pillar)", columns_path(article_type: 'pillar', genre: params[:genre]), class: "btn #{params[:article_type] == 'pillar' ? 'btn-warning' : 'btn-outline-warning'}"
+      = link_to "子記事(Child)", columns_path(article_type: 'child', genre: params[:genre]), class: "btn #{params[:article_type] == 'child' ? 'btn-primary' : 'btn-outline-primary'}"
 
 .section-knowhow
   .container
     h1.section-title
-      | 新着記事
+      - if params[:article_type] == 'pillar'
+        | 親記事（ピラー）一覧
+      - elsif params[:article_type] == 'child'
+        | 子記事（クラスター）一覧
+      - else
+        | 新着記事
 
     .columns-grid
       - @columns.presence&.each do |column|
         .column-card
           .column-image
-           - if column.file.present?
-            = image_tag column.file.to_s, width:"100%", class: 'column-thumb', alt: column.title
+            - if column.file.present?
+              = image_tag column.file.to_s, width: "100%", class: 'column-thumb', alt: column.title
           .column-content
             h2.column-title
               = link_to column.title, column_path(column)
             .column-description
               - if column.description.present?
                 = truncate(strip_tags(column.description), length: 120)
-                |  （更新日: 
-                = column.updated_at.strftime("%Y/%m/%d %H:%M")
-                | ）
+                | （更新日: #{column.updated_at.strftime("%Y/%m/%d %H:%M")}）
+            
             - if admin_signed_in?
-              .column-admin-links
-                .div.btn.btn-edit = column.genre
-                .div.btn.btn-edit = column.article_type
+              .column-admin-links style="margin-top: 10px;"
+                span.badge.bg-info style="margin-right: 5px;" = column.genre
+                
+                / 子記事のカウント表示
+                - if column.article_type == "pillar"
+                  span.badge.bg-warning style="margin-right: 5px;"
+                    | Pillar (#{ @child_counts[column.id] || 0 } 子記事)
+                - else
+                  span.badge.bg-primary style="margin-right: 5px;" Child
+                
                 = link_to '編集', edit_column_path(column), class: 'btn-edit'
                 = link_to '削除', column_path(column), method: :delete, data: { confirm: '本当に削除しますか？' }, class: 'btn-delete'
                 - if column.status == "draft"
-                 = link_to "承認", approve_column_path(column), method: :patch, class: "btn btn-success"
-
+                  = link_to "承認", approve_column_path(column), method: :patch, class: "btn btn-success"
 
     .pagination-wrapper
       /= paginate @columns if @columns.present?

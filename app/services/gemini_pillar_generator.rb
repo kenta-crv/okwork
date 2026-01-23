@@ -121,6 +121,54 @@ class GeminiPillarGenerator
     false
   end
 
+  def generate_from_selected
+  ids = params[:column_ids]
+
+  if ids.blank?
+    redirect_to draft_columns_path, alert: "親記事を選択してください"
+    return
+  end
+
+  columns = Column.where(id: ids, article_type: "pillar")
+
+  if columns.empty?
+    redirect_to draft_columns_path, alert: "有効な親記事が見つかりません"
+    return
+  end
+
+  success = 0
+  failure = 0
+
+  columns.each do |column|
+    begin
+      Rails.logger.info "▶ 本文生成開始: #{column.title}"
+
+      # 子記事を取得（既存設計に合わせる）
+      child_columns = Column.where(parent_id: column.id, article_type: "child")
+
+      # 本文生成
+      body = GptPillarGenerator.generate_body(column, child_columns: child_columns)
+
+      if body.present?
+        column.update!(body: body, status: "approved")
+        success += 1
+        Rails.logger.info "✅ 生成成功: #{column.title}"
+      else
+        failure += 1
+        Rails.logger.error "❌ 本文生成失敗: #{column.title}"
+      end
+
+      sleep 1
+    rescue => e
+      failure += 1
+      Rails.logger.error "❌ 例外発生: #{column.title} - #{e.message}"
+    end
+  end
+
+  redirect_to draft_columns_path, notice: "生成完了: 成功 #{success}件 / 失敗 #{failure}件"
+end
+
+
   def self.post_to_gemini(prompt)
     uri = URI(GEMINI_API_URL)
     uri.query = URI.encode_www_form(key: GEMINI_API_KEY)

@@ -3,73 +3,75 @@ class ColumnsController < ApplicationController
   before_action :set_column, only: [:show, :edit, :update, :destroy, :approve]
   before_action :set_breadcrumbs
 
-  def index
-    columns = Column.where.not(status: "draft")
-    columns = columns.where(status: params[:status]) if params[:status].present?
+def index
+  # 基本となるクエリ（下書き以外）
+  columns = Column.where.not(status: "draft")
+  columns = columns.where(status: params[:status]) if params[:status].present?
 
-    if params[:genre].present?
-      # Columnモデルの定数 GENRE_MAPPING を参照
-      allowed_genres = Column::GENRE_MAPPING[params[:genre]] || [params[:genre]]
-      columns = columns.where(genre: allowed_genres)
-    end
-
-    @columns = columns.order(updated_at: :desc)
+  # ① 親/子のフィルタリングボタン用
+  if params[:article_type].present?
+    columns = columns.where(article_type: params[:article_type])
   end
 
-# GET /:genre/columns/:id (実際は :id に code が入る)
-  def show
-    # --- SEO対策: 正規URLへのリダイレクト ---
-    # ジャンルが特定のリストに含まれるかチェック
-    is_valid_genre = @column.genre.present? && @column.genre.match?(/cargo|security|cleaning|app|construction/)
-    
-    # 【修正箇所】nested_columns_path (複数形) を nested_column_path (単数形) に変更
-    correct_path = if is_valid_genre
-                     nested_column_path(genre: @column.genre, id: @column.code)
-                   else
-                     column_path(@column)
-                   end
-
-    # 現在のアクセスURLが、計算した正規URLと異なる場合はリダイレクト
-    # これにより /columns/123 等のアクセスが /app/columns/code へ転送される
-    if request.path != correct_path
-      return redirect_to correct_path, status: :moved_permanently
-    end
-
-    # 親記事（pillar）の場合は子記事を取得
-    if @column.article_type == "pillar"
-      @children = @column.children.where(status: "approved").order(updated_at: :desc)
-    else
-      @children = []
-    end
-
-    markdown_body =
-      @column.body.presence ||
-      "## 記事はまだ生成されていません。\n\n[編集]画面からテーマ生成を行い、[承認]ボタンを押して本文生成ジョブを実行してください。"
-
-    raw_html_body = Kramdown::Document.new(markdown_body).to_html
-
-    sanitized_html_body = raw_html_body
-      .gsub(/<span[^>]*>|<\/span>/, '')
-      .gsub(/ style=\"[^\"]*\"/, '')
-
-    @headings = []
-
-    @column_body_with_ids =
-      sanitized_html_body.gsub(/<(h[2-4])>(.*?)<\/\1>/m) do
-        tag  = Regexp.last_match(1)
-        text = Regexp.last_match(2)
-
-        idx = @headings.size
-        @headings << {
-          tag: tag,
-          text: text,
-          id: "heading-#{idx}",
-          level: tag[1].to_i
-        }
-
-        "<#{tag} id='heading-#{idx}'>#{text}</#{tag}>"
-      end
+  # ジャンル検索
+  if params[:genre].present?
+    allowed_genres = Column::GENRE_MAPPING[params[:genre]] || [params[:genre]]
+    columns = columns.where(genre: allowed_genres)
   end
+
+  # ② 子記事のカウントを効率的に取得（pillarの場合のみカウントが必要ですが、一括で行います）
+  # ページネーションがある場合や数が多い場合は counter_cache か left_joins を検討
+  @columns = columns.order(updated_at: :desc)
+  
+  # 子記事数を集計してハッシュ化 { parent_id => count }
+  @child_counts = Column.where(parent_id: @columns.pluck(:id)).group(:parent_id).count
+end
+
+# app/controllers/columns_controller.rb
+
+def show
+  # ID または code(スラッグ) で検索
+  @column = Column.find_by(id: params[:id]) || Column.find_by!(code: params[:id])
+
+  # --- SEO対策: 正規URLへのリダイレクト ---
+  is_valid_genre = @column.genre.present? && @column.genre.match?(/cargo|security|cleaning|app|construction/)
+  
+  correct_path = if is_valid_genre
+                   nested_column_path(genre: @column.genre, id: @column.code)
+                 else
+                   column_path(@column)
+                 end
+
+  if request.path != correct_path
+    return redirect_to correct_path, status: :moved_permanently
+  end
+
+  # --- 親記事（pillar）の場合は子記事を取得 ---
+  if @column.article_type == "pillar"
+    # ここを status: "approved" から where.not(status: "draft") に変更
+    # これにより "approved"（生成中）も "completed"（完了）も表示される
+    @children = @column.children.where.not(status: "draft").order(updated_at: :desc)
+  else
+    @children = []
+  end
+
+  # --- Markdown 処理 ---
+  markdown_body = @column.body.presence || "## 記事はまだ生成されていません。"
+  raw_html_body = Kramdown::Document.new(markdown_body).to_html
+
+  sanitized_html_body = raw_html_body
+    .gsub(/<span[^>]*>|<\/span>/, '')
+    .gsub(/ style=\"[^\"]*\"/, '')
+
+  @headings = []
+  @column_body_with_ids = sanitized_html_body.gsub(/<(h[2-4])>(.*?)<\/\1>/m) do
+    tag  = Regexp.last_match(1)
+    text = Regexp.last_match(2)
+    idx = @headings.size
+    @headings << { tag: tag, text: text, id: "heading-#{idx}", level: tag[1].to_i }
+    "<#{tag} id='heading-#{idx}'>#{text}</#{tag}>"
+  end
+end
 
   def new
     @column = Column.new
@@ -147,14 +149,70 @@ class ColumnsController < ApplicationController
     end
   end
 
-  def generate_pillar
-  batch_count = params[:batch] || 5
-  genre = params[:genre] # 任意ジャンル指定可
+def generate_pillar
+  # batch_count = params[:batch] || 5 # これはもう不要になります
+  
+  title    = params[:title]   # フォームから受け取るタイトル
+  genre    = params[:genre]   # フォームから受け取るジャンル
+  category = params[:choice]  # フォームから受け取るカテゴリ
 
-  # 親記事専用のGeminiクラスを呼び出す
-  created = GeminiPillarGenerator.generate_pillars(genre: genre, batch_count: batch_count.to_i)
+  if title.present?
+    # 前の回答で作成した OpenAI一本化メソッドを呼び出す
+    # これにより status: "draft" のレコードが1件作られる
+    column = GptPillarGenerator.generate_full_article(title, genre, category)
+    
+    if column
+      redirect_to draft_columns_path, notice: "親記事「#{title}」のドラフトを作成しました。一覧から本文生成を実行してください。"
+    else
+      redirect_to new_column_path, alert: "生成に失敗しました。"
+    end
+  else
+    redirect_to new_column_path, alert: "タイトルを入力してください。"
+  end
+end
 
-  redirect_to columns_path, notice: "親記事を#{created}件生成しました"
+def generate_from_selected
+  ids = params[:column_ids]
+
+  if ids.blank?
+    redirect_to draft_columns_path, alert: "親記事を選択してください"
+    return
+  end
+
+  columns = Column.where(id: ids, article_type: "pillar")
+
+  if columns.empty?
+    redirect_to draft_columns_path, alert: "有効な親記事が見つかりません"
+    return
+  end
+
+  success = 0
+  failure = 0
+
+  columns.each do |column|
+    begin
+      GptPillarGenerator.generate_full_from_existing_column!(column)
+      success += 1
+    rescue => e
+      failure += 1
+      Rails.logger.error "❌ 失敗: #{column.title} - #{e.message}"
+    end
+
+    sleep 1
+  end
+
+  redirect_to draft_columns_path,
+              notice: "処理完了: 成功 #{success}件 / 失敗 #{failure}件"
+end
+
+def generate_from_pillar
+  # params[:id] が数値（ID）か文字列（code）か不明なため、find_by で両方対応させる
+  @column = Column.find_by(id: params[:id]) || Column.find_by!(code: params[:id])
+
+  # 生成開始
+  GeminiColumnGenerator.generate_columns(batch_count: 25, pillar_id: @column.id)
+  
+  redirect_to column_path(@column), notice: "この記事に紐づく子記事（25件）の生成を開始しました。ドラフト一覧を確認してください。"
 end
 
   private
