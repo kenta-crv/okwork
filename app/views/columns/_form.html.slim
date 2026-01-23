@@ -26,10 +26,28 @@
         = f.text_area :body, rows: 12, class: "form-control"
 
       .form-group
+        = f.label :genre, "ジャンル"
+          = f.select :genre,[\
+            ["軽貨物", "cargo"],\
+            ["清掃業", "cleaning"],\
+            ["警備業", "security"],\
+            ["営業代行", "app"],\
+            ["自販機", "vender"],\
+            ["建設", "construction"]\
+          ],{ include_blank: "選択してください" },class: "form-control"
+
+      .form-group
+        = f.label :article_type, "タイプ"
+          = f.select :article_type,[\
+            ["親記事", "pillar"],\
+            ["子記事", "cluster"],\
+          ],{ include_blank: "選択してください" },class: "form-control"
+
+      /.form-group
         = f.label :choice, "カテゴリー（任意）"
         = f.text_field :choice, class: "form-control"
 
-      .form-group
+      /.form-group
         = f.label :keyword, "キーワード（任意）"
         = f.text_field :keyword, class: "form-control"
 

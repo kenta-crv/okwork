@@ -14,6 +14,7 @@ Rails.application.routes.draw do
   get 'cleaning', to: 'tops#cleaning'
   get 'event', to: 'tops#event'
   get 'logistics', to: 'tops#logistics'
+  get 'short', to: 'tops#short'
   get 'recruit', to: 'tops#recruit'
   get 'app', to: 'tops#app'
   get 'ads', to: 'tops#ads'
