@@ -42,7 +42,7 @@
             .column-description
               - if column.description.present?
                 = truncate(strip_tags(column.description), length: 120)
-                | （更新日: #{column.updated_at.strftime("%Y/%m/%d %H:%M")}）
+                | （更新日: #{column.updated_at.in_time_zone.strftime("%Y/%m/%d %H:%M")}）
             
             - if admin_signed_in?
               .column-admin-links style="margin-top: 10px;"

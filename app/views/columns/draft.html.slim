@@ -36,7 +36,7 @@
                     span.badge.bg-danger 本文なし(要再生成)
                   - else
                     span.badge.bg-info 生成中/その他
-                td = column.updated_at.strftime("%Y/%m/%d")
+                td = column.updated_at.in_time_zone.strftime("%Y/%m/%d")
                 td 
                   .d-flex.gap-1
                     / 本文がない場合は「再生成」として機能するように
