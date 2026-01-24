@@ -72,14 +72,14 @@ class GptArticleGenerator
         h2["h3_sub_sections"].each do |h3|
           prompt = section_content_prompt(column, h3, "H3", category, parent_h2: h2["h2_title"])
           full_article += generate_section_content(h3, prompt, column, heading_level: "###") + "\n\n"
-          sleep(0.5)
+          sleep(0.5) # レート制限対策
         end
       else
         prompt = section_content_prompt(column, h2["h2_title"], "H2", category)
         full_article += generate_section_content(h2["h2_title"], prompt, column, heading_level: "") + "\n\n"
       end
 
-      sleep(0.5)
+      sleep(0.5) # レート制限対策
     end
 
     full_article += generate_section_content(
@@ -121,7 +121,7 @@ class GptArticleGenerator
   end
 
   # ==============================
-  # プロンプト群
+  # プロンプト群 (元の内容を完全維持)
   # ==============================
   def self.structure_generation_prompt(column, category)
     <<~PROMPT
@@ -203,7 +203,7 @@ class GptArticleGenerator
   end
 
   # ==============================
-  # GPT呼び出し
+  # GPT呼び出し (タイムアウトを240秒に強化)
   # ==============================
   def self.generate_section_content(name, prompt, column, heading_level: "##")
     response = call_gpt_api(prompt)
@@ -229,10 +229,16 @@ class GptArticleGenerator
     payload[:response_format] = response_format if response_format.present?
     req.body = payload.to_json
 
-    res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true, read_timeout: 60) do |http|
-      http.request(req)
-    end
+    begin
+      # ★ここを read_timeout: 240 に修正。本番のタイムアウトを回避します。
+      res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true, read_timeout: 240) do |http|
+        http.request(req)
+      end
 
-    res.is_a?(Net::HTTPSuccess) ? JSON.parse(res.body) : nil
+      res.is_a?(Net::HTTPSuccess) ? JSON.parse(res.body) : nil
+    rescue => e
+      Rails.logger.error("GPT API通信エラー: #{e.message}")
+      nil
+    end
   end
 end
