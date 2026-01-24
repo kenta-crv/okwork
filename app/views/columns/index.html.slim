@@ -4,13 +4,19 @@
 - if admin_signed_in?
   .row.center style="margin-bottom: 20px;"
     .col-sm-4
-      = link_to "ドラフト一覧を見る", draft_columns_path, class: "btn btn-secondary"
+      = link_to "ドラフト一覧を見る", draft_columns_path, class: "btn btn-secondary", data: { turbo: false }
     
-    / 記事タイプ切り替えボタン
+    / 記事タイプ切り替えボタン：data-turbo="false" でスクロール位置のリセットを防ぐ
     .col-sm-8 style="display: flex; gap: 10px; justify-content: center;"
-      = link_to "すべて表示", columns_path(genre: params[:genre]), class: "btn #{params[:article_type].blank? ? 'btn-dark' : 'btn-outline-dark'}"
-      = link_to "親記事(Pillar)", columns_path(article_type: 'pillar', genre: params[:genre]), class: "btn #{params[:article_type] == 'pillar' ? 'btn-warning' : 'btn-outline-warning'}"
-      = link_to "子記事(Child)", columns_path(article_type: 'child', genre: params[:genre]), class: "btn #{params[:article_type] == 'child' ? 'btn-primary' : 'btn-outline-primary'}"
+      = link_to "すべて表示", columns_path(genre: params[:genre]), 
+                class: "btn #{params[:article_type].blank? ? 'btn-dark' : 'btn-outline-dark'}", 
+                data: { turbo: false }
+      = link_to "親記事(Pillar)", columns_path(article_type: 'pillar', genre: params[:genre]), 
+                class: "btn #{params[:article_type] == 'pillar' ? 'btn-warning' : 'btn-outline-warning'}", 
+                data: { turbo: false }
+      = link_to "子記事(Child)", columns_path(article_type: 'child', genre: params[:genre]), 
+                class: "btn #{params[:article_type] == 'child' ? 'btn-primary' : 'btn-outline-primary'}", 
+                data: { turbo: false }
 
 .section-knowhow
   .container
@@ -30,7 +36,9 @@
               = image_tag column.file.to_s, width: "100%", class: 'column-thumb', alt: column.title
           .column-content
             h2.column-title
-              = link_to column.title, column_path(column)
+              / リダイレクトループ防止のため、codeがあればcodeを、なければIDを使用
+              - link_target = column.code.presence || column.id
+              = link_to column.title, column_path(link_target), data: { turbo: false }
             .column-description
               - if column.description.present?
                 = truncate(strip_tags(column.description), length: 120)
@@ -47,10 +55,10 @@
                 - else
                   span.badge.bg-primary style="margin-right: 5px;" Child
                 
-                = link_to '編集', edit_column_path(column), class: 'btn-edit'
-                = link_to '削除', column_path(column), method: :delete, data: { confirm: '本当に削除しますか？' }, class: 'btn-delete'
+                = link_to '編集', edit_column_path(column), class: 'btn-edit', data: { turbo: false }
+                = link_to '削除', column_path(column), method: :delete, data: { confirm: '本当に削除しますか？', turbo: false }, class: 'btn-delete'
                 - if column.status == "draft"
-                  = link_to "承認", approve_column_path(column), method: :patch, class: "btn btn-success"
+                  = link_to "承認", approve_column_path(column), method: :patch, class: "btn btn-success", data: { turbo: false }
 
     .pagination-wrapper
       /= paginate @columns if @columns.present?

@@ -4,26 +4,27 @@ class ColumnsController < ApplicationController
   before_action :set_breadcrumbs
 
 def index
-  # 下書き以外を取得
-  columns = Column.where.not(status: "draft")
+  # statusがdraft以外、かつ bodyが空でないものだけを取得
+  columns = Column.where.not(status: "draft").where.not(body: [nil, ""])
+  
   columns = columns.where(status: params[:status]) if params[:status].present?
 
-  # フィルタリング
-  columns = columns.where(article_type: params[:article_type]) if params[:article_type].present?
+  # ① 親/子のフィルタリングボタン用
+  if params[:article_type].present?
+    columns = columns.where(article_type: params[:article_type])
+  end
 
+  # ジャンル検索
   if params[:genre].present?
     allowed_genres = Column::GENRE_MAPPING[params[:genre]] || [params[:genre]]
     columns = columns.where(genre: allowed_genres)
   end
 
-  # ページネーションがない場合は order を確実に指定
   @columns = columns.order(updated_at: :desc)
   
-  # 子記事数の集計（@columnsが空でも落ちないように修正）
   column_ids = @columns.map(&:id)
   @child_counts = column_ids.any? ? Column.where(parent_id: column_ids).group(:parent_id).count : {}
 end
-
 # app/controllers/columns_controller.rb
 
 def show
@@ -103,9 +104,10 @@ def show
     redirect_to draft_columns_path, notice: "#{created}件生成しました"
   end
 
-  def draft
-    @columns = Column.where(status: "draft").order(created_at: :desc)
-  end
+def draft
+  # statusがdraftのもの、または本文が空（生成未完了・失敗）のものをまとめて取得
+  @columns = Column.where(status: "draft").or(Column.where(body: [nil, ""])).order(created_at: :desc)
+end
 
   # ----- 個別承認 -----
   def approve
@@ -180,25 +182,14 @@ def generate_from_selected
     return
   end
 
-  success = 0
-  failure = 0
-
+  # --- 修正箇所：直接実行せず、1件ずつJobに登録する ---
   columns.each do |column|
-    begin
-      GptPillarGenerator.generate_full_from_existing_column!(column)
-      success += 1
-    rescue => e
-      failure += 1
-      Rails.logger.error "❌ 失敗: #{column.title} - #{e.message}"
-    end
-
-    sleep 1
+    GenerateColumnBodyJob.perform_later(column.id)
   end
 
   redirect_to draft_columns_path,
-              notice: "処理完了: 成功 #{success}件 / 失敗 #{failure}件"
+              notice: "#{columns.count}件の生成をバックグラウンドで開始しました。完了まで数分お待ちください。"
 end
-
 def generate_from_pillar
     @column = Column.find_by(id: params[:id]) || Column.find_by!(code: params[:id])
 
