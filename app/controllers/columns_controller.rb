@@ -4,27 +4,24 @@ class ColumnsController < ApplicationController
   before_action :set_breadcrumbs
 
 def index
-  # 基本となるクエリ（下書き以外）
+  # 下書き以外を取得
   columns = Column.where.not(status: "draft")
   columns = columns.where(status: params[:status]) if params[:status].present?
 
-  # ① 親/子のフィルタリングボタン用
-  if params[:article_type].present?
-    columns = columns.where(article_type: params[:article_type])
-  end
+  # フィルタリング
+  columns = columns.where(article_type: params[:article_type]) if params[:article_type].present?
 
-  # ジャンル検索
   if params[:genre].present?
     allowed_genres = Column::GENRE_MAPPING[params[:genre]] || [params[:genre]]
     columns = columns.where(genre: allowed_genres)
   end
 
-  # ② 子記事のカウントを効率的に取得（pillarの場合のみカウントが必要ですが、一括で行います）
-  # ページネーションがある場合や数が多い場合は counter_cache か left_joins を検討
+  # ページネーションがない場合は order を確実に指定
   @columns = columns.order(updated_at: :desc)
   
-  # 子記事数を集計してハッシュ化 { parent_id => count }
-  @child_counts = Column.where(parent_id: @columns.pluck(:id)).group(:parent_id).count
+  # 子記事数の集計（@columnsが空でも落ちないように修正）
+  column_ids = @columns.map(&:id)
+  @child_counts = column_ids.any? ? Column.where(parent_id: column_ids).group(:parent_id).count : {}
 end
 
 # app/controllers/columns_controller.rb
