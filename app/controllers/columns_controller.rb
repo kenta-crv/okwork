@@ -131,26 +131,22 @@ end
     end
     redirect_to columns_path, notice: "承認しました。本文生成を開始します。"
   end
-
-  # ----- 一括承認・削除 -----
+# ----- 一括承認・削除 -----
   def bulk_update_drafts
     column_ids = params[:column_ids]
-
     unless column_ids.present?
       redirect_to draft_columns_path, alert: "操作対象のドラフトが選択されていません。"
       return
     end
-
     case params[:action_type]
     when "approve_bulk"
-      columns = Column.where(id: column_ids)
+      columns = Column.where(id: column_ids)      
       columns.each do |column|
-        next if column.approved?
-        column.update!(status: "approved")
         GenerateColumnBodyJob.perform_later(column.id)
       end
-      redirect_to columns_path, notice: "#{columns.count}件のドラフトを承認しました。"
+      redirect_to columns_path, notice: "#{columns.count}件の生成ジョブをキューに入れました。順次生成されます。"
     when "delete_bulk"
+      # (変更なし)
       count = Column.where(id: column_ids).destroy_all
       redirect_to draft_columns_path, notice: "#{count}件のドラフトを削除しました。"
     else
