@@ -80,7 +80,7 @@ def show
       "<#{tag} id='heading-#{idx}'>#{text}</#{tag}>"
     end
   end
-    
+
   def new
     @column = Column.new
   end
@@ -159,21 +159,26 @@ end
   end
 
 def generate_pillar
-  # batch_count = params[:batch] || 5 # これはもう不要になります
-  
-  title    = params[:title]   # フォームから受け取るタイトル
-  genre    = params[:genre]   # フォームから受け取るジャンル
-  category = params[:choice]  # フォームから受け取るカテゴリ
+  title    = params[:title]
+  genre    = params[:genre]
+  category = params[:choice]
 
   if title.present?
-    # 前の回答で作成した OpenAI一本化メソッドを呼び出す
-    # これにより status: "draft" のレコードが1件作られる
+    # レコードを作成（status: draft）
     column = GptPillarGenerator.generate_full_article(title, genre, category)
     
     if column
-      redirect_to draft_columns_path, notice: "親記事「#{title}」のドラフトを作成しました。一覧から本文生成を実行してください。"
+      # 【重要】Webサーバー(Puma)から切り離して、独立したプロセスで実行
+      # rails c と同じ環境を OSレベルで再現する
+      env = Rails.env # 現状に合わせ "development" 等が入る
+      cmd = "RAILS_ENV=#{env} nohup bundle exec rails runner 'GenerateColumnBodyJob.perform_now(#{column.id})' >> log/article_gen.log 2>&1 &"
+      
+      # system関数で実行。& を付けているので即座にリダイレクトへ進む
+      system(cmd)
+
+      redirect_to draft_columns_path, notice: "「#{title}」の生成をバックグラウンドで開始しました。数分後に確認してください。"
     else
-      redirect_to new_column_path, alert: "生成に失敗しました。"
+      redirect_to new_column_path, alert: "レコードの作成に失敗しました。"
     end
   else
     redirect_to new_column_path, alert: "タイトルを入力してください。"
