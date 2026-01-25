@@ -23,7 +23,16 @@ def index
   @columns = columns.order(updated_at: :desc)
   
   column_ids = @columns.map(&:id)
-  @child_counts = column_ids.any? ? Column.where(parent_id: column_ids).group(:parent_id).count : {}
+
+  # --- 修正箇所：bodyが空でない子記事のみをカウント ---
+  @child_counts = if column_ids.any?
+    Column.where(parent_id: column_ids)
+          .where.not(body: [nil, ""]) # bodyがnilまたは空文字でない
+          .group(:parent_id)
+          .count
+  else
+    {}
+  end
 end
 # app/controllers/columns_controller.rb
 
@@ -45,7 +54,11 @@ def show
 
     # --- 親記事（pillar）の場合は子記事を取得 ---
     if @column.article_type == "pillar"
-      @children = @column.children.where.not(status: "draft").order(updated_at: :desc)
+      # 修正箇所：statusがdraft以外、かつ bodyが空でないものに絞り込み
+      @children = @column.children
+                         .where.not(status: "draft")
+                         .where.not(body: [nil, ""]) # bodyがあるものだけ
+                         .order(updated_at: :desc)
     else
       @children = []
     end
@@ -67,7 +80,7 @@ def show
       "<#{tag} id='heading-#{idx}'>#{text}</#{tag}>"
     end
   end
-  
+    
   def new
     @column = Column.new
   end
