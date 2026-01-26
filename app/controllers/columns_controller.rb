@@ -199,12 +199,11 @@ def generate_from_selected
   redirect_to draft_columns_path,
               notice: "#{columns.count}件の生成をバックグラウンドで開始しました。完了まで数分お待ちください。"
 end
+
 def generate_from_pillar
     @column = Column.find_by(id: params[:id]) || Column.find_by!(code: params[:id])
-
     # 直接 GeminiColumnGenerator を呼ばず、Jobに丸投げする
     GenerateChildColumnsJob.perform_later(@column.id, 25)
-    
     redirect_to column_path(@column), notice: "子記事25件の生成をバックグラウンドで開始しました。数分後に確認してください。"
   end
 
