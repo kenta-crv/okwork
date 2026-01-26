@@ -2,6 +2,8 @@ class GenerateChildColumnsJob < ApplicationJob
   queue_as :default
 
   def perform(pillar_id, batch_count = 25)
+    Rails.logger.error("=== JOB START: pillar_id=#{pillar_id} ===")
+
     pillar = Column.find_by(id: pillar_id)
     return unless pillar
 
