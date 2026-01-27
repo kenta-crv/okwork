@@ -12,6 +12,9 @@
 
 ActiveRecord::Schema.define(version: 2026_01_11_130341) do
 
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "plpgsql"
+
   create_table "admins", force: :cascade do |t|
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
@@ -34,7 +37,6 @@ ActiveRecord::Schema.define(version: 2026_01_11_130341) do
     t.text "body"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.string "service_type", default: "cargo", null: false
     t.string "genre"
     t.string "code"
     t.string "article_type", default: "cluster", null: false
@@ -43,7 +45,6 @@ ActiveRecord::Schema.define(version: 2026_01_11_130341) do
     t.index ["article_type"], name: "index_columns_on_article_type"
     t.index ["code"], name: "index_columns_on_code", unique: true
     t.index ["parent_id"], name: "index_columns_on_parent_id"
-    t.index ["service_type"], name: "index_columns_on_service_type"
   end
 
   create_table "contracts", force: :cascade do |t|
