@@ -1,4 +1,18 @@
 development:
   adapter: postgresql
+  encoding: unicode
   database: okwork_development
-  username: okuyamakenta   # ← 実際のユーザー名
+  username: okuyamakenta
+  host: localhost
+  pool: 5
+
+test:
+  adapter: postgresql
+  encoding: unicode
+  database: okwork_test
+  username: okuyamakenta
+  host: localhost
+  pool: 5
+
+production:
+  url: <%= ENV["DATABASE_URL"] %>
