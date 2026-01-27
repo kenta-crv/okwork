@@ -15,4 +15,10 @@ test:
   pool: 5
 
 production:
-  url: <%= ENV["DATABASE_URL"] %>
+  adapter: postgresql
+  encoding: unicode
+  database: okwork_production
+  username: okwork
+  password: kenta245502
+  host: 127.0.0.1
+  pool: 5
