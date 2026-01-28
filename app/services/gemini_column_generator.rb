@@ -48,7 +48,7 @@ class GeminiColumnGenerator
       categories: ["課題解決", "導入検討", "業界理解", "活用イメージ", "不安解消"],
       exclude: "個人ブロガー向けの発信"
     },
-    ai: {
+    vender: {
       service_name:  "自動販売機の設置サービス",
       service_brand: "自販機ねっと",
       service_path:  "/vender",

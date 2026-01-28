@@ -14,13 +14,14 @@ module Batch
       daily_count.times do |i|
         Rails.logger.info("=== Processing #{i + 1}/#{daily_count} ===")
 
-        # ランダムに pillar 記事を選択
-        pillar = pillar_columns.sample
+        # ランダムに parent_id を持つ child 記事を取得
+        child = Column.where.not(parent_id: nil)
+                      .where(article_type: "child", status: "draft", body: nil)
+                      .order("RANDOM()")
+                      .first
 
-        # pillar に紐づく child 記事（未生成・approved のもの）を取得
-        child = Column.where(parent_id: pillar.id, article_type: "child", body: nil).first
         unless child
-          Rails.logger.warn("child 記事なし。スキップ: pillar_id=#{pillar.id}")
+          Rails.logger.warn("対象 child 記事なし。スキップ")
           next
         end
 
@@ -29,7 +30,7 @@ module Batch
         # =====================
         begin
           GenerateColumnBodyJob.perform_later(child.id)
-          Rails.logger.info("✅ Child 本文生成成功: #{child.id}")
+          Rails.logger.info("✅ Child 本文生成成功: #{child.id} (parent_id=#{child.parent_id})")
         rescue => e
           child.update!(status: "failed")
           Rails.logger.error("❌ Child 本文生成例外: #{child.id} - #{e.message}")
