@@ -16,7 +16,7 @@ module Batch
 
         # ランダムに parent_id を持つ child 記事を取得
         child = Column.where.not(parent_id: nil)
-                      .where(article_type: "child", status: "draft", body: nil)
+                      .where(article_type: "child", body: nil)
                       .order("RANDOM()")
                       .first
 
