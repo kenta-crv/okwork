@@ -16,6 +16,7 @@
               th.text-center
                 = check_box_tag "select_all", "1", false, class: "form-check-input", onclick: "toggleAll(this)"
               th id
+              th parent
               th タイトル
               th ジャンル
               th 状態
@@ -27,6 +28,7 @@
                 td.text-center
                   = check_box_tag "column_ids[]", column.id, false, class: "form-check-input column-checkbox"
                 td = column.id
+                td = column.parent_id
                 td = column.title
                 td = column.genre
                 td
