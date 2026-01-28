@@ -29,7 +29,7 @@ module Batch
         # 本文生成
         # =====================
         begin
-          GenerateColumnBodyJob.perform_later(child.id)
+          GenerateColumnBodyJob.perform_now(child.id)
           Rails.logger.info("✅ Child 本文生成成功: #{child.id} (parent_id=#{child.parent_id})")
         rescue => e
           child.update!(status: "failed")
