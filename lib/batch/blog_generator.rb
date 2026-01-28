@@ -18,7 +18,7 @@ module Batch
         pillar = pillar_columns.sample
 
         # pillar に紐づく child 記事（未生成・approved のもの）を取得
-        child = Column.where(parent_id: pillar.id, article_type: "child", status: "approved").first
+        child = Column.where(parent_id: pillar.id, article_type: "child", body: nil).first
         unless child
           Rails.logger.warn("child 記事なし。スキップ: pillar_id=#{pillar.id}")
           next
