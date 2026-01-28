@@ -14,7 +14,7 @@ class GeminiColumnGenerator
       service_path:  "/cargo",
       target: "軽貨物事業者との取引や協業を検討している企業の担当者または経営層",
       categories: ["課題解決", "選定・比較", "業界理解", "活用イメージ", "不安解消"],
-      exclude: "求職者および軽貨物事業者自身に向けた発信"
+      exclude: "軽貨物事業者自身に向けた発信"
     },
     security: {
       service_name:  "警備業務",
@@ -22,7 +22,7 @@ class GeminiColumnGenerator
       service_path:  "/security",
       target: "警備業務の外注や切替を検討している企業・施設管理者",
       categories: ["課題解決", "選定・比較", "業界理解", "活用イメージ", "不安解消"],
-      exclude: "警備員の求人や資格取得を目的とした発信"
+      exclude: "警備員の発注を検討している企業に向けた発信"
     },
     cleaning: {
       service_name:  "清掃業務",
@@ -30,7 +30,7 @@ class GeminiColumnGenerator
       service_path:  "/cleaning",
       target: "清掃業務の外注を検討している法人・施設管理者",
       categories: ["課題解決", "選定・比較", "業界理解", "活用イメージ", "不安解消"],
-      exclude: "清掃スタッフの求人向け発信"
+      exclude: "清掃の業務を外注しようとしている企業に向けた発信"
     },
     app: {
       service_name:  "テレアポ型営業代行",
@@ -47,6 +47,14 @@ class GeminiColumnGenerator
       target: "SEO集客を効率化・内製化したい企業",
       categories: ["課題解決", "導入検討", "業界理解", "活用イメージ", "不安解消"],
       exclude: "個人ブロガー向けの発信"
+    },
+    ai: {
+      service_name:  "自動販売機の設置サービス",
+      service_brand: "自販機ねっと",
+      service_path:  "/vender",
+      target: "自動販売機の設置を行いたい企業",
+      categories: ["自動販売機", "自販機", "設置", "購入", "見積"],
+      exclude: "自販機設置のニーズのある人向けの発信"
     },
     construction: {
       service_name:  "建設現場労務支援サービス",

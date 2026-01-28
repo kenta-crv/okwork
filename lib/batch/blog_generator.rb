@@ -5,7 +5,7 @@ module Batch
       Rails.logger.info("=== Blog generation start: #{Time.current} ===")
 
       # pillar 記事を取得（status: approved のもの）
-      pillar_columns = Column.where(article_type: "pillar", status: "approved").order(created_at: :asc)
+      pillar_columns = Column.where(article_type: "pillar").order(created_at: :asc)
       if pillar_columns.empty?
         Rails.logger.warn("pillar 記事なし。処理終了")
         return
