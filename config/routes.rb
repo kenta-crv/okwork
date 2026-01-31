@@ -13,6 +13,7 @@ Rails.application.routes.draw do
   get 'construction', to: 'tops#construction'
   get 'cleaning', to: 'tops#cleaning'
   get 'event', to: 'tops#event'
+  get 'vender', to: 'tops#vender'
   get 'logistics', to: 'tops#logistics'
   get 'short', to: 'tops#short'
   get 'recruit', to: 'tops#recruit'
@@ -20,7 +21,7 @@ Rails.application.routes.draw do
   get 'ads', to: 'tops#ads'
 
   # --- SEO用: ジャンル別コラム階層 (/genre/columns/:code) ---
-  scope ':genre', constraints: { genre: /cargo|security|cleaning|app|construction/ } do
+  scope ':genre', constraints: { genre: /cargo|security|cleaning|app|construction|vender/ } do
     resources :columns, only: [:index, :show], as: :nested_columns
   end
 

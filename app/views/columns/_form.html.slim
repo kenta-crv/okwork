@@ -43,6 +43,9 @@
             ["子記事", "cluster"],\
           ],{ include_blank: "選択してください" },class: "form-control"
 
+      .form-group
+       = f.label :prompt, "AI生成指示（任意・最優先）"
+         = f.text_area :prompt, rows: 6, class: "form-control", placeholder: "この記事では○○について詳しく解説し、△△の読者を想定して〜のような構成で書いてほしい"
       /.form-group
         = f.label :choice, "カテゴリー（任意）"
         = f.text_field :choice, class: "form-control"

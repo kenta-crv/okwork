@@ -43,6 +43,7 @@
                   .d-flex.gap-1
                     / 本文がない場合は「再生成」として機能するように
                     = link_to "ChatGPT", approve_column_path(column), method: :patch, class: "btn btn-dark btn-sm"
+                    = link_to 'Edit', edit_column_path(column), class: 'btn btn-success', data: { turbo: false }                
                     = link_to "Delete", column_path(column), method: :delete, data: { confirm: "削除しますか？" }, class: "btn btn-danger btn-sm"
 
     javascript:

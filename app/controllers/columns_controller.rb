@@ -240,6 +240,7 @@ def generate_from_pillar
       :article_type,
       :parent_id, 
       :cluster_limit,
+      :prompt
     )
   end
 end
