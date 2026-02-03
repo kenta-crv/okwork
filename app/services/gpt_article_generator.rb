@@ -32,13 +32,15 @@ class GptArticleGenerator
 
     original_body = column.body
     category = detect_category(column.keyword)
+    # 追加プロンプト（user_instruction）を取得
+    user_instruction = column.respond_to?(:prompt) ? column.prompt : nil
 
     Rails.logger.info("判定カテゴリ: #{category}")
 
     # ==============================
     # STEP 1: 構成生成
     # ==============================
-    structure_prompt = structure_generation_prompt(column, category)
+    structure_prompt = structure_generation_prompt(column, category, user_instruction)
     structure_response = call_gpt_api(structure_prompt, response_format: { type: "json_object" })
 
     return original_body if structure_response.nil?
@@ -61,7 +63,7 @@ class GptArticleGenerator
 
     full_article += generate_section_content(
       "導入",
-      introduction_prompt(column, category),
+      introduction_prompt(column, category, user_instruction),
       column,
       heading_level: ""
     ) + "\n\n"
@@ -71,22 +73,22 @@ class GptArticleGenerator
 
       if h2["h3_sub_sections"].present?
         h2["h3_sub_sections"].each do |h3|
-          prompt = section_content_prompt(column, h3, "H3", category, parent_h2: h2["h2_title"])
+          prompt = section_content_prompt(column, h3, "H3", category, user_instruction, parent_h2: h2["h2_title"])
           full_article += generate_section_content(h3, prompt, column, heading_level: "###") + "\n\n"
-          sleep(0.5) # レート制限対策
+          sleep(0.5) 
         end
       else
-        prompt = section_content_prompt(column, h2["h2_title"], "H2", category)
+        prompt = section_content_prompt(column, h2["h2_title"], "H2", category, user_instruction)
         full_article += generate_section_content(h2["h2_title"], prompt, column, heading_level: "") + "\n\n"
       end
 
-      sleep(0.5) # レート制限対策
+      sleep(0.5) 
     end
 
-    # まとめセクションの生成（全業種共通のプロンプトを使用）
+    # まとめセクションの生成
     full_article += generate_section_content(
       "まとめ",
-      simple_conclusion_prompt(column, category),
+      simple_conclusion_prompt(column, category, user_instruction),
       column,
       heading_level: ""
     )
@@ -149,94 +151,92 @@ class GptArticleGenerator
   end
 
   # ==============================
-  # プロンプト群
+  # プロンプト群（重複・空見出し対策版）
   # ==============================
-  def self.structure_generation_prompt(column, category)
+  def self.structure_generation_prompt(column, category, user_instruction)
     service = service_profile(category)
+    instruction = user_instruction.present? ? "### 個別指示（最優先事項）\n#{user_instruction}\n" : ""
     <<~PROMPT
-      あなたはプロのWebライターです。
+      あなたはプロのWebライターです。読者の疑問を解消する論理的な構成を作成してください。
 
       # 記事情報
       - タイトル: #{column.title}
       - 概要: #{column.description}
-      - キーワード: #{column.keyword}
       - 業種カテゴリ: #{category}
       - サービス背景: #{service}
 
-      # 指示
-      - H2は最大4つ
-      - H3は各H2につき最大3つ
-      - 導入・まとめは含めない
-      - 論理的で一貫した構成にする
+      #{instruction}
+
+      # 構成指示（厳守）
+      - 各H2・H3の見出しで扱う内容が**絶対に重複しない**ように分けてください。
+      - 例：H2(1)で費用相場、H2(2)で負担者の条件、H2(3)でトラブル対策、など役割を分担。
+      - 本文を300文字以上書ける、具体的で深掘り可能な見出しにしてください。
+      - 見出しだけの空セクションを作らないよう、各項目の粒度を揃えてください。
 
       # 出力形式（JSONのみ）
-      {
-        "structure": [
-          {
-            "h2_title": "H2見出し",
-            "h3_sub_sections": ["H3見出し"]
-          }
-        ]
-      }
+      { "structure": [ { "h2_title": "...", "h3_sub_sections": ["...", "..."] } ] }
     PROMPT
   end
 
-  def self.introduction_prompt(column, category)
+  def self.introduction_prompt(column, category, user_instruction)
     service = service_profile(category)
+    instruction = user_instruction.present? ? "### 個別指示（反映必須）\n#{user_instruction}\n" : ""
     <<~PROMPT
-      タイトル「#{column.title}」の記事の導入文を書いてください。
+      タイトル「#{column.title}」の記事の導入文（リード文）を書いてください。
 
-      - 対象業種: #{category}
-      - コンセプト: #{service} に基づいた専門家としての視点
-      - 文字数: #{TARGET_CHARS_PER_SECTION}文字程度（最大#{MAX_CHARS_PER_SECTION}文字）
-      - 見出しは含めない
-      - 段落・太字・箇条書きを活用
+      - 役割：読者の悩みへ共感し、この記事を読めば解決できることを伝えます。
+      - 注意：具体的な「400〜600本」の基準や解決策の詳細は、後の見出しで詳しく書くため、ここでは**結論の概要のみ**に留めてください。
+      #{instruction}
+      - 文字数：**必ず#{TARGET_CHARS_PER_SECTION}〜#{MAX_CHARS_PER_SECTION}文字で書いてください。**
+      - 見出しは出力しないでください。本文のみを出力してください。
     PROMPT
   end
 
-  def self.section_content_prompt(column, headline, level, category, parent_h2: nil)
-    parent = parent_h2 ? "（親H2: #{parent_h2}）" : ""
+  def self.section_content_prompt(column, headline, level, category, user_instruction, parent_h2: nil)
+    parent = parent_h2 ? "（親テーマ: #{parent_h2}）" : ""
     service = service_profile(category)
+    instruction = user_instruction.present? ? "### 個別指示（反映必須）\n#{user_instruction}\n" : ""
     heading_instruction = level == "H3" ? "### #{headline} から書き始めてください。" : "本文のみを書いてください。"
 
     <<~PROMPT
-      以下のセクション本文を書いてください。
+      以下のセクションの本文を執筆してください。見出しだけ出力して本文を書かないことは**絶対に禁止**です。
 
-      - 業種カテゴリ: #{category}
+      - 執筆対象の見出し: #{headline} #{parent}
+      - 記事タイトル: #{column.title}
       - 専門背景: #{service}
-      - タイトル: #{column.title}
-      - 見出し: #{headline} #{parent}
 
-      # 制約
-      - 文字数: #{TARGET_CHARS_PER_SECTION}文字程度（最大#{MAX_CHARS_PER_SECTION}文字）
-      - 特定の社名を出した過度な宣伝・CTAは禁止（あくまで専門知識の提供に徹する）
-      - 段落・太字・箇条書きを使用
-      - H4（####）使用可
-      - です・ます調
+      #{instruction}
+
+      # 執筆ルール（大問題解決のため厳守）
+      1. **重複の徹底回避**: 他の見出しで説明済みの内容（例：400本基準の繰り返し等）は避け、この見出し独自の専門的な詳細を深掘りしてください。
+      2. **文字数ノルマ**: **必ず#{TARGET_CHARS_PER_SECTION}文字以上、#{MAX_CHARS_PER_SECTION}文字以内で執筆してください。**
+      3. **具体性の確保**: 抽象的な表現で濁さず、実務上の注意点、法的根拠、具体的な手順、または独自のノウハウを必ず含めてください。
+      4. スタイル: です・ます調、箇条書き、太字（**）を使い、読みやすくしてください。
 
       #{heading_instruction}
     PROMPT
   end
 
-  def self.simple_conclusion_prompt(column, category)
+  def self.simple_conclusion_prompt(column, category, user_instruction)
     service = service_profile(category)
+    instruction = user_instruction.present? ? "### 個別指示（反映必須）\n#{user_instruction}\n" : ""
     <<~PROMPT
-      記事のまとめを書いてください。
+      記事全体の「まとめ」を執筆してください。
 
-      - 文字数: #{TARGET_CHARS_PER_SECTION}文字程度（最大#{MAX_CHARS_PER_SECTION}文字）
-      - 「## まとめ」から開始
-      - 記事内容を簡潔に要約
-      - 背景知識として「#{service}」の視点を踏まえるが、直接的な営業文や「お問い合わせはこちら」といったCTAは含めない。
-      - 読者に寄り添った締めくくりにしてください。
+      - 「## まとめ」という見出しから開始してください。
+      - 記事で伝えた重要なポイントを要約し、読者が次に取るべきアクション（相見積もり等）を促してください。
+      #{instruction}
+      - 専門背景: #{service}
+      - 文字数：**必ず#{TARGET_CHARS_PER_SECTION}〜#{MAX_CHARS_PER_SECTION}文字を維持してください。**
     PROMPT
   end
 
   # ==============================
-  # GPT呼び出し
+  # GPT呼び出し（システム指示を強化）
   # ==============================
   def self.generate_section_content(name, prompt, column, heading_level: "##")
     response = call_gpt_api(prompt)
-    response&.dig("choices", 0, "message", "content") || "（#{name}生成失敗）"
+    response&.dig("choices", 0, "message", "content") || "（#{name}の本文生成に失敗しました。再生成してください。）"
   end
 
   def self.call_gpt_api(prompt, response_format: nil)
@@ -249,10 +249,10 @@ class GptArticleGenerator
     payload = {
       model: MODEL_NAME,
       messages: [
-        { role: "system", content: "あなたはプロの業界特化ライターです。 #{MODEL_NAME} として、専門的かつ客観的な情報提供を行います。" },
+        { role: "system", content: "あなたはプロの業界特化ライターです。各セクションで必ず300文字以上の具体的かつ重複のない本文を執筆する義務があります。見出しだけを出力して本文を省略することは決して許されません。" },
         { role: "user", content: prompt }
       ],
-      temperature: 0.5
+      temperature: 0.4 # 少し下げて確実性を向上
     }
 
     payload[:response_format] = response_format if response_format.present?
@@ -262,7 +262,6 @@ class GptArticleGenerator
       res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true, read_timeout: 240) do |http|
         http.request(req)
       end
-
       res.is_a?(Net::HTTPSuccess) ? JSON.parse(res.body) : nil
     rescue => e
       Rails.logger.error("GPT API通信エラー: #{e.message}")

@@ -49,12 +49,13 @@ class GeminiColumnGenerator
       exclude: "個人ブロガー向けの発信"
     },
     vender: {
-      service_name:  "自動販売機の設置サービス",
+      service_name:  "メーカー自動販売機の設置サービス",
       service_brand: "自販機ねっと",
       service_path:  "/vender",
-      target: "自動販売機の設置を行いたい企業",
-      categories: ["自動販売機", "自販機", "設置", "購入", "見積"],
-      exclude: "自販機設置のニーズのある人向けの発信"
+      target: "メーカー自動販売機を設置・運営する立場の企業担当者",
+      categories: ["自動販売機", "自販機", "設置", "運営", "契約"],
+      exclude: "メーカー設置が前提で、設置や収益性・電気代やラインナップを理解しようとしない浅い内容",
+      hints: "設置基準, 電気代負担, 商品補充の仕組み, 管理責任の分界点, 社内説明, 撤去・入替の考え方"
     },
     construction: {
       service_name:  "建設現場労務支援サービス",

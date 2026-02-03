@@ -18,6 +18,7 @@ Rails.application.routes.draw do
   get 'recruit', to: 'tops#recruit'
   get 'app', to: 'tops#app'
   get 'ads', to: 'tops#ads'
+  get 'bpo', to: 'tops#bpo'
 
   # --- SEO用: ジャンル別コラム階層 (/genre/columns/:code) ---
   scope ':genre', constraints: { genre: /cargo|security|cleaning|app|construction/ } do
