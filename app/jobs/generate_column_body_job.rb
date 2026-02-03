@@ -5,7 +5,6 @@ class GenerateColumnBodyJob < ApplicationJob
   retry_on Net::ReadTimeout, wait: :exponentially_longer, attempts: 3
 
   def perform(column_id)
-    Rails.logger.error("=== BODY JOB START: column_id=#{column_id} ===")
     column = Column.find_by(id: column_id)
     return unless column
     
