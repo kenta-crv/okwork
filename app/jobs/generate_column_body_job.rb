@@ -11,9 +11,6 @@ class GenerateColumnBodyJob < ApplicationJob
     # 二重実行防止
     return if column.status == "completed" && column.body.present?
 
-    # 【証拠1】ジョブが開始されたことを即座に保存
-    column.update_columns(status: "creating", body: "--- Job開始時刻: #{Time.current} ---")
-
     begin
       if column.article_type == "pillar"
         # 親記事(Pillar)の場合

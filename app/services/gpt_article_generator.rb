@@ -11,9 +11,16 @@ class GptArticleGenerator
   GPT_API_KEY = ENV["GPT_API_KEY"]
   GPT_API_URL = "https://api.openai.com/v1/chat/completions"
 
-  # ==============================
-  # 業種カテゴリ定義（部分一致）
-  # ==============================
+  # 英字コードから日本語名を取得するための逆引きマップ
+  GENRE_REVERSE_MAP = {
+    "cargo"        => "軽貨物",
+    "cleaning"     => "清掃",
+    "security"     => "警備",
+    "app"          => "営業代行",
+    "vender"       => "自販機",
+    "construction" => "建設"
+  }.freeze
+
   CATEGORY_KEYWORDS = {
     "警備"     => ["警備"],
     "軽貨物"   => ["軽貨物", "配送"],
@@ -31,26 +38,25 @@ class GptArticleGenerator
     end
 
     original_body = column.body
-    category = detect_category(column.keyword.presence || column.title)
-    # 追加：フォームからの個別指示を取得
+    # genreを最優先し、カテゴリ(日本語)を決定
+    category = GENRE_REVERSE_MAP[column.genre] || detect_category(column.keyword)
+    
     user_instruction = column.respond_to?(:prompt) ? column.prompt : nil
 
     Rails.logger.info("判定カテゴリ: #{category}")
 
     # ==============================
-    # 1. Meta情報生成（Pillarと同様のフローを追加）
+    # STEP 0: meta情報生成
     # ==============================
-    meta_data = generate_meta_info(column, category, user_instruction)
+    meta_data = generate_meta_info(column, category)
     if meta_data
       clean_code = meta_data["code"].to_s.downcase.gsub(/[^a-z0-9\s\-]/, '').strip.gsub(/[\s_]+/, '-').gsub(/-+/, '-').gsub(/\A-|-\z/, '')
-      clean_code = "article-#{column.id}" if clean_code.blank?
-
-      # 本文生成前に、Meta情報を先に更新・保存する
+      clean_code = "article-#{column.id.to_s.split('-').first}" if clean_code.blank?
+      
       column.update!(
         code: clean_code,
         description: meta_data["description"],
-        keyword: meta_data["keyword"],
-        status: "creating"
+        keyword: meta_data["keyword"]
       )
     end
 
@@ -92,53 +98,39 @@ class GptArticleGenerator
         h2["h3_sub_sections"].each do |h3|
           prompt = section_content_prompt(column, h3, "H3", category, user_instruction, parent_h2: h2["h2_title"])
           full_article += generate_section_content(h3, prompt, column, heading_level: "###") + "\n\n"
-          sleep(0.5) # レート制限対策
+          sleep(0.5) 
         end
       else
         prompt = section_content_prompt(column, h2["h2_title"], "H2", category, user_instruction)
         full_article += generate_section_content(h2["h2_title"], prompt, column, heading_level: "") + "\n\n"
       end
 
-      sleep(0.5) # レート制限対策
+      sleep(0.5) 
     end
 
-    # まとめセクションの生成
     full_article += generate_section_content(
       "まとめ",
       simple_conclusion_prompt(column, category, user_instruction),
       column,
       heading_level: ""
     )
-
-    # 最終保存
-    column.update!(body: full_article, status: "completed")
+    full_article.gsub!(/\s+id=(['"])[^'"]*\1/i, "")
+    full_article.gsub!(/<(h[23])[^>]*>/i, '<\1>')
+    full_article += "\n\n{::options auto_ids=\"false\" /}"
     full_article
   end
 
-  # ==============================
-  # Meta情報生成（Pillarのロジックを移植）
-  # ==============================
-  def self.generate_meta_info(column, category, user_instruction)
+  def self.generate_meta_info(column, category)
     prompt = <<~PROMPT
       以下の条件でSEOメタ情報をJSONで生成してください。
       タイトル: #{column.title}
       業種: #{category}
-      個別指示: #{user_instruction}
-      形式: { "code": "英字スラッグ", "description": "120文字程度の日本語説明文", "keyword": "カンマ区切りのキーワード" }
+      形式: { "code": "slug", "description": "日本語説明", "keyword": "キーワード" }
     PROMPT
     res = call_gpt_api(prompt, response_format: { type: "json_object" })
-    return nil if res.nil?
-    begin
-      content = res.dig("choices", 0, "message", "content").gsub(/```json|```/, '').strip
-      JSON.parse(content)
-    rescue
-      nil
-    end
+    res ? JSON.parse(res.dig("choices", 0, "message", "content")) : nil
   end
 
-  # ==============================
-  # カテゴリ判定
-  # ==============================
   def self.detect_category(keyword)
     return "その他" if keyword.blank?
 
@@ -149,9 +141,6 @@ class GptArticleGenerator
     "その他"
   end
 
-  # ==============================
-  # 業種別のサービス情報明確化
-  # ==============================
   def self.service_profile(category)
     case category
     when "軽貨物"
@@ -189,9 +178,6 @@ class GptArticleGenerator
     end
   end
 
-  # ==============================
-  # プロンプト群（空見出し・重複・文字数不足を厳格に封殺）
-  # ==============================
   def self.structure_generation_prompt(column, category, user_instruction)
     service = service_profile(category)
     instruction = user_instruction.present? ? "### 個別指示（最優先事項）\n#{user_instruction}\n" : ""
@@ -250,21 +236,21 @@ class GptArticleGenerator
     PROMPT
   end
 
+  # --- 修正箇所: まとめプロンプトの改善 ---
   def self.simple_conclusion_prompt(column, category, user_instruction)
     service = service_profile(category)
     instruction = user_instruction.present? ? "### 個別指示（反映必須）\n#{user_instruction}\n" : ""
     <<~PROMPT
-      記事の「まとめ」を執筆してください。
-      - 「## まとめ」から開始。
-      - 重複を避け、読者が次に取るべき具体的なアクションを力強く後押ししてください。
+      記事「#{column.title}」の総括（まとめ）を執筆してください。
+      - 必ず「## まとめ」という見出しから開始してください。
+      - 記事全体（#{category}業界の課題や解決策）を振り返り、読者が抱く不安を解消する内容にしてください。
+      - 最後に、専門サービス「#{service.split("\n").first}」へ相談することを具体的なアクションとして促してください。
       #{instruction}
       - 文字数：必ず300〜500文字を維持してください。
     PROMPT
   end
+  # ------------------------------------
 
-  # ==============================
-  # GPT呼び出し（システム指示で本文省略を封殺）
-  # ==============================
   def self.generate_section_content(name, prompt, column, heading_level: "##")
     response = call_gpt_api(prompt)
     content = response&.dig("choices", 0, "message", "content")

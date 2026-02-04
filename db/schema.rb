@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_01_29_051627) do
+ActiveRecord::Schema.define(version: 2026_02_04_062107) do
 
   create_table "admins", force: :cascade do |t|
     t.string "email", default: "", null: false
@@ -70,6 +70,17 @@ ActiveRecord::Schema.define(version: 2026_01_29_051627) do
     t.index ["slug", "sluggable_type", "scope"], name: "index_friendly_id_slugs_on_slug_and_sluggable_type_and_scope", unique: true
     t.index ["slug", "sluggable_type"], name: "index_friendly_id_slugs_on_slug_and_sluggable_type"
     t.index ["sluggable_type", "sluggable_id"], name: "index_friendly_id_slugs_on_sluggable_type_and_sluggable_id"
+  end
+
+  create_table "sites", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "domain", null: false
+    t.string "seo_title"
+    t.string "contact_email"
+    t.boolean "crm_enabled", default: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["domain"], name: "index_sites_on_domain", unique: true
   end
 
 end

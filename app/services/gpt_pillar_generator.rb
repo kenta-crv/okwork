@@ -6,6 +6,16 @@ class GptPillarGenerator
   MODEL_NAME = "gpt-4o-mini"
   GPT_API_URL = "https://api.openai.com/v1/chat/completions"
 
+  # 1. 英字コードから日本語名を取得するための逆引きマップ
+  GENRE_REVERSE_MAP = {
+    "cargo"        => "軽貨物",
+    "cleaning"     => "清掃業",
+    "security"     => "警備業",
+    "app"          => "営業代行",
+    "vender"       => "自販機",
+    "construction" => "建設"
+  }.freeze
+
   GENRE_MAP = {
     "軽貨物"   => "cargo",
     "清掃業"   => "cleaning",
@@ -27,8 +37,10 @@ class GptPillarGenerator
   def self.generate_full_from_existing_column!(column)
     raise "タイトルが空です" if column.title.blank?
     
-    target_category = detect_category(column)
+    # --- 修正箇所: genreを最優先し、target_category(日本語)を決定 ---
+    target_category = GENRE_REVERSE_MAP[column.genre] || detect_category(column)
     genre_code = GENRE_MAP[target_category] || "other"
+    # ---------------------------------------------------------
 
     puts "▶ 統合生成開始: #{column.title} (判定: #{target_category})"
 
@@ -43,15 +55,16 @@ class GptPillarGenerator
     structure_data = generate_structure(column, target_category)
     raise "記事構成の生成に失敗しました" if structure_data.nil? || structure_data["structure"].nil?
 
+    # --- 修正箇所: choiceを廃止しgenreに統一して更新 ---
     column.update!(
       code: clean_code,
       description: meta_data["description"],
       keyword: meta_data["keyword"],
-      choice: target_category,
       genre: genre_code,
       status: "creating",
       article_type: "pillar"
     )
+    # ----------------------------------------------
 
     # --- 本文生成（連携強化Ver） ---
     h2_titles = structure_data["structure"].map { |s| s["h2_title"] }
@@ -137,7 +150,7 @@ class GptPillarGenerator
         { role: "system", content: system_content },
         { role: "user", content: prompt }
       ],
-      temperature: 0.5 # 少し上げることで自然な繋がりを許容
+      temperature: 0.5 
     }
     payload[:response_format] = { type: "json_object" } if json_mode
     req.body = payload.to_json
@@ -149,8 +162,6 @@ class GptPillarGenerator
       nil
     end
   end
-
-  # --- プロンプト修正ポイント：文脈の注入 ---
 
   def self.introduction_prompt(column, category, h2_titles)
     <<~PROMPT
