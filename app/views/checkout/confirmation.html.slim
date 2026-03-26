@@ -1,99 +1,92 @@
-.container.py-5
+/ data-turbo="false" で遷移時の不具合を物理的に遮断
+.container.py-5 data-turbo="false"
   .row.justify-content-center
     .col-md-6
-      .card.shadow.p-4.border-0.rounded-3
-        h2.h4.mb-4.font-weight-bold お支払い情報
+      .card.shadow-sm.border-0.rounded-4
+        .card-body.p-4
+          h2.h4.fw-bold.mb-4 お支払い内容の確認
 
-        = form_with url: checkout_create_path, method: :post, id: "payment-form", local: true do |f|
-          = hidden_field_tag :plan_type, @plan_type
-          
-          .mb-4
-            label.form-label.small.text-muted カード番号 / 有効期限 / CVV
-            .payjp-outer-box.p-2.border.rounded style="min-height: 50px; background: #fff;"
-              / 公開鍵を確実に渡す
-              #card-element data-pk="#{ENV['PAYJP_PUBLIC_KEY']}"
-            #card-errors.text-danger.small.mt-2
+          / --- 金額表示エリア (青色に変更) ---
+          .bg-light.rounded-3.p-3.mb-4
+            .d-flex.justify-content-between.mb-2
+              span.text-muted 選択プラン
+              span.fw-bold = @plan_type.to_s.upcase
+            .d-flex.justify-content-between.align-items-center
+              span.text-muted お支払い金額
+              / text-primary クラスで青色に指定
+              span.h3.fw-bold.text-primary.mb-0
+                - case @plan_type.to_s.downcase
+                - when 'standard'
+                  | ¥2,980
+                - when 'enterprise'
+                  | ¥9,800
+                - else
+                  | ¥0
+                span.small.ms-1.text-muted.fw-normal (税込)
 
-          = f.submit "決済を確定する", class: "btn btn-primary w-100 py-3", id: "submit-button", disabled: true
+          hr.my-4
 
-/ --- スクリプト部分 ---
+          / --- 決済フォーム ---
+          = form_with url: checkout_create_path, method: :post, id: "payment-form", local: true do |f|
+            = hidden_field_tag :plan_type, @plan_type
+            
+            .mb-4
+              label.form-label.fw-semibold カード情報
+              / 枠線をBootstrap標準の form-control に合わせる
+              #card-element data-pk="#{ENV['PAYJP_PUBLIC_KEY']}" class="form-control" style="min-height: 50px; padding: 12px; background: #fff;"
+                span.text-muted.small 読み込み中...
+              #card-errors.text-danger.small.mt-2
 
-/ 1. 外部ライブラリを「確実に」読み込む（重複を許容するsrc設定）
-script src="https://js.pay.jp/v2/pay.js"
+            = f.submit "決済を確定する", class: "btn btn-primary w-100 py-3 fw-bold", id: "submit-button", disabled: true
+
+/ SDKの読み込み
+script src="https://js.pay.jp/v2/pay.js" onload="initPayjp()"
 
 javascript:
-  // 関数をグローバルに定義して、どこからでも呼べるようにする
-  window.forceInitPayjp = function() {
-    console.log("Execution started: forceInitPayjp");
-    const el = document.getElementById('card-element');
-    const statusEl = document.getElementById('payjp-status');
-    
-    if (!el) {
-      console.error("Element #card-element not found.");
+  function initPayjp() {
+    var el = document.getElementById('card-element');
+    if (!el || el.firstChild.nodeName === 'IFRAME') return;
+
+    var pk = el.getAttribute('data-pk');
+    if (!pk || typeof Payjp === 'undefined') {
+      setTimeout(initPayjp, 200);
       return;
     }
 
-    // 1. 公開鍵のチェック
-    const pk = el.dataset.pk;
-    if (!pk) {
-      if (statusEl) statusEl.innerText = "鍵エラー(ENV空)";
-      console.error("Public Key is missing in ENV.");
-      return;
-    }
+    var payjp = Payjp(pk);
+    var elements = payjp.elements();
+    var card = elements.create('card', {
+      style: { base: { fontSize: '16px', color: '#495057' } }
+    });
 
-    // 2. PAY.JP ライブラリの存在チェック
-    if (typeof Payjp === 'undefined') {
-      console.warn("Payjp library not found. Retrying in 500ms...");
-      if (statusEl) statusEl.innerText = "ライブラリ読み込み待ち...";
-      setTimeout(window.forceInitPayjp, 500);
-      return;
-    }
+    el.innerHTML = '';
+    card.mount('#card-element');
 
-    try {
-      if (statusEl) statusEl.innerText = "接続中...";
-      const payjp = Payjp(pk);
-      const elements = payjp.elements();
-      const card = elements.create('card');
-      
-      // 既存のiframeがあれば削除（二重表示防止）
-      el.innerHTML = '';
-      card.mount('#card-element');
-      
-      card.on('ready', function() {
-        if (statusEl) {
-          statusEl.innerText = "準備完了";
-          statusEl.className = "badge bg-success";
+    card.on('ready', function() {
+      document.getElementById('submit-button').disabled = false;
+    });
+
+    var form = document.getElementById('payment-form');
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var btn = document.getElementById('submit-button');
+      btn.disabled = true;
+
+      payjp.createToken(card).then(function(r) {
+        if (r.error) {
+          document.getElementById('card-errors').innerText = r.error.message;
+          btn.disabled = false;
+        } else {
+          var tokenInput = document.createElement('input');
+          tokenInput.type = 'hidden';
+          tokenInput.name = 'payjp_token';
+          tokenInput.value = r.id;
+          form.appendChild(tokenInput);
+          form.submit();
         }
-        document.getElementById('submit-button').disabled = false;
-        console.log("PAY.JP mounted successfully.");
       });
+    });
+  }
 
-      // 送信処理
-      const form = document.getElementById('payment-form');
-      form.onsubmit = function(e) {
-        e.preventDefault();
-        payjp.createToken(card).then(function(r) {
-          if (r.error) {
-            document.getElementById('card-errors').innerText = r.error.message;
-          } else {
-            const tokenInput = document.createElement('input');
-            tokenInput.type = 'hidden';
-            tokenInput.name = 'payjp_token';
-            tokenInput.value = r.id;
-            form.appendChild(tokenInput);
-            form.submit();
-          }
-        });
-      };
-    } catch (e) {
-      console.error("Init Error:", e);
-      if (statusEl) statusEl.innerText = "初期化エラー";
-    }
-  };
-
-  // 実行トリガー
-  // Turbo環境でも、そうでない環境でも、どちらでも動くように全てにイベントを張る
-  document.addEventListener('turbo:load', window.forceInitPayjp);
-  document.addEventListener('DOMContentLoaded', window.forceInitPayjp);
-  // それでもダメな時用の即時実行
-  window.forceInitPayjp();
+  // 保険の実行
+  if (window.Payjp) initPayjp();

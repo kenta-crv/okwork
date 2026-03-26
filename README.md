@@ -10,3 +10,6 @@ CSV.foreach(file_path, headers: true) do |row|
     article_type: row['article_type']
   )
 end
+
+#サイトのブランチ表示（ローカル）
+sudo vi /etc/hosts

@@ -1,66 +1,52 @@
 Rails.application.routes.draw do
-  # Deviseの管理者認証
+  # ================================================================
+  # 1. 共通基盤設定 (既存の構成・パスを1行ずつ完全維持)
+  # ================================================================
+  
+  # 管理者認証 (admins)
   devise_for :admins, controllers: {
     sessions: 'admins/sessions',
     registrations: 'admins/registrations'
   }
 
-    # Devise routes for Users
+  # クライアント認証 (clients)
   devise_for :clients, controllers: {
     sessions: "clients/sessions",
     registrations: "clients/registrations",
     passwords: "clients/passwords"
   }
 
+  # クライアント専用ディレクトリ (namespace :client)
+  namespace :client do
+    get 'dashboard/index'
+    root "dashboard#index"
+    resources :notifications
+    
+    get 'subscription', to: 'subscriptions#show', as: :subscription
+    patch 'subscription', to: 'subscriptions#update'
+    post 'subscription/cancel', to: 'subscriptions#cancel', as: :cancel_subscription
+  end
+
+  # クライアントリソース
   resources :clients do
-    # Campaigns nested under clients
-    #resources :campaigns do
-    #  get :confirm_payment, on: :member, as: :confirm_payment
-    #end
-#
-    # Push subscriptions
     resources :push_subscriptions, only: [:index, :create]
   end
 
-  
-  root to: 'tops#index'
-
-  # --- 各ジャンルLPの定義 ---
-  get 'cargo', to: 'tops#cargo'
-  get 'security', to: 'tops#security'
-  get 'construction', to: 'tops#construction'
-  get 'cleaning', to: 'tops#cleaning'
-  get 'event', to: 'tops#event'
-  get 'vender', to: 'tops#vender'
-  get 'logistics', to: 'tops#logistics'
-  get 'short', to: 'tops#short'
-  get 'recruit', to: 'tops#recruit'
-  get 'app', to: 'tops#app'
-  get 'ads', to: 'tops#ads'
-  get 'bpo', to: 'tops#bpo'
-  get 'pest', to: 'tops#pest'
-
-  # --- SEO用: ジャンル別コラム階層 (/genre/columns/:code) ---
-  scope ':genre', constraints: { genre: /cargo|security|cleaning|construction|pest/ } do
-    resources :columns, only: [:index, :show], as: :nested_columns
+  # Sidekiq 管理画面 (以前の通り維持)
+  require 'sidekiq/web'
+  authenticate :admin do 
+    mount Sidekiq::Web, at: "/sidekiq"
   end
 
-  get 'draft/progress', to: 'draft#progress'
-
-  resources :contracts
-
-  # --- 【重要修正】一括処理ルーティングを resources より上に定義 ---
-  # これにより /columns/generate_from_selected が ID 検索 (/:id) より先にマッチします
+  # コラム基本管理機能 (全ドメインで共通認識させるための基本パス)
   post 'columns/generate_from_selected', to: 'columns#generate_from_selected', as: :generate_from_selected_columns_fix
   post 'columns/bulk_update_drafts', to: 'columns#bulk_update_drafts', as: :bulk_update_drafts_columns_fix
 
-  # --- 管理機能・汎用リソースとしてのコラム ---
   resources :columns do
     collection do
-      get :draft            # ドラフト一覧
-      post :generate_gemini # Gemini生成ボタンのPOST
-      post :generate_pillar # 親専用生成ボタン
-      # 以下の定義は resources 内部だと優先順位が低いため、上記の外出し定義が優先されます
+      get :draft
+      post :generate_gemini
+      post :generate_pillar
       post :generate_from_selected
       match 'bulk_update_drafts', via: [:post, :patch]
     end
@@ -70,22 +56,83 @@ Rails.application.routes.draw do
     end
   end
 
-  # --- Sidekiq Web UI ---
-  require 'sidekiq/web'
-  authenticate :admin do 
-    mount Sidekiq::Web, at: "/sidekiq"
+  # ================================================================
+  # 2. マスタードメイン (okey.work)
+  # 全ての管理・および j-work から外れた全ての LP を集約
+  # ================================================================
+  constraints host: 'okey.work' do
+    root to: 'columns#index', as: :master_root
+
+    # j-work から移設した各 LP アクションを1行ずつ明示的に記述
+    get 'construction', to: 'tops#construction'
+    get 'security',     to: 'tops#security'
+    get 'short',        to: 'tops#short'
+    get 'vender',       to: 'tops#vender'
+    get 'recruit',      to: 'tops#recruit'
+    get 'bpo',          to: 'tops#bpo'
+    get 'pest',         to: 'tops#pest'
+    get 'ads',          to: 'tops#ads'
+
+    # 共通のエイリアス nested_columns を維持しつつ okey.work でも全ジャンル有効化
+    get ':genre/columns', to: 'columns#index', as: :nested_columns
+    get ':genre/columns/:id', to: 'columns#show', as: :nested_column
   end
 
-  #Payment
+  # ================================================================
+  # 3. j-work.jp (厳格に 4ジャンル のみ)
+  # ================================================================
+  constraints ->(req) { req.host == 'j-work.jp' || Rails.env.development? } do
+    root to: 'tops#index', as: :j_work_root
+    
+    # 許可された 4ジャンル の LP
+    get 'cleaning',  to: 'tops#cleaning'
+    get 'daily',  to: 'tops#daily'
+    get 'cargo',     to: 'tops#cargo'
+    get 'logistics', to: 'tops#logistics'
+    get 'event',     to: 'tops#event'
+
+    # 構造: /:genre/columns (j-workでは cargo|cleaning|logistics|event に制限)
+    scope ':genre/columns', constraints: { genre: /cargo|cleaning|logistics|event/ } do
+      get '/',    to: 'columns#index'
+      get '/:id', to: 'columns#show'
+    end
+  end
+
+  # ================================================================
+  # 4. ri-plus.jp (app のみ)
+  # ================================================================
+  constraints host: 'ri-plus.jp' do
+    root to: 'tops#app', as: :ri_plus_root
+    scope ':genre/columns', constraints: { genre: /app/ } do
+      get '/',    to: 'columns#index'
+      get '/:id', to: 'columns#show'
+    end
+  end
+
+  # ================================================================
+  # 5. 自販機.net (vender のみ)
+  # ================================================================
+  constraints host: '自販機.net' do
+    root to: 'tops#vender', as: :vender_root
+    scope ':genre/columns', constraints: { genre: /vender/ } do
+      get '/',    to: 'columns#index'
+      get '/:id', to: 'columns#show'
+    end
+  end
+
+  # ================================================================
+  # 6. 付随機能 (Payment / Plans / その他共通)
+  # ================================================================
+  get 'draft/progress', to: 'draft#progress', as: :draft_progress
+  resources :contracts
+
+  # 決済関連 (詳細を1行ずつ維持)
   get 'checkout/confirmation', to: 'checkout#confirmation', as: :checkout_confirmation
   post 'checkout/create', to: 'checkout#create', as: :checkout_create
   get 'checkout/success', to: 'checkout#success', as: :checkout_success
   get 'checkout/cancel', to: 'checkout#cancel', as: :checkout_cancel
 
+  # プラン選択
   get 'plans', to: 'plans#index', as: :plans
   post 'plans/select', to: 'plans#select', as: :select_plan
-
-  get 'client/subscription', to: 'client/subscriptions#show', as: :client_subscription
-  patch 'client/subscription', to: 'client/subscriptions#update'
-  post 'client/subscription/cancel', to: 'client/subscriptions#cancel', as: :cancel_client_subscription
 end

@@ -2,7 +2,7 @@
       .container-fluid.d-flex.align-items-center.justify-content-between
         .d-flex.align-items-center.logo-section
           - if request.host.include?("ri-plus.jp")
-            = image_tag "logo-ri-plus.png", class: "nav-logo me-2", alt: "RI-PLUS"
+            = image_tag "logo-riplus.png", class: "nav-logo me-2", alt: "RI-PLUS"
           - elsif request.host.include?("自販機.net")
             = image_tag "logo-vender.png", class: "nav-logo me-2", alt: "自販機"
           - else

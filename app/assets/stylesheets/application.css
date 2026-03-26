@@ -1131,6 +1131,15 @@ button:focus, input:focus, .btn:focus { outline: 3px solid rgba(25,140,222,0.12)
   background-color: #05918e;
   transform: scale(1.05);
 }
+.cards-moos-link {
+  text-decoration: none !important;
+  color: #222222 !important;
+}
+
+.cards-moos-link:hover {
+  text-decoration: none !important;
+  color: #222222 !important;
+}
 
 /* Pricing Cards Section */
 .pricing-cards-section {
@@ -2462,18 +2471,21 @@ small {
   font-size: 32px;
   font-weight: 700;
   margin-bottom: 12px;
+  text-align: center;
 }
 
 .section-lead {
   color: #666;
   margin-bottom: 40px;
   font-size: 15px;
+  text-align: center;
 }
 
 /* テーブル */
 .company-table {
   width: 100%;
   border-collapse: collapse;
+  text-align: center;
 }
 
 .company-table th,

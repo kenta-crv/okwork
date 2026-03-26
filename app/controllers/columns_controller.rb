@@ -1,118 +1,98 @@
 class ColumnsController < ApplicationController
-  # before_action :authenticate_admin!, except: [:index, :show]
   before_action :set_column, only: [:show, :edit, :update, :destroy, :approve]
   before_action :set_breadcrumbs
   before_action :set_noindex
 
-def index
-  # statusがdraft以外、かつ bodyが空でないものだけを取得
-  columns = Column.where.not(status: "draft").where.not(body: [nil, ""])
+  def index
+    # 1. 公開済みデータのベース
+    columns = Column.where.not(status: "draft").where.not(body: [nil, ""])
 
-  # -----------------------------
-  # ドメインによるgenre制御
-  # -----------------------------
-  if request.host.include?("ri-plus.jp")
-    columns = columns.where(genre: "app")
-  elsif request.host.include?("自販機.net")
-    columns = columns.where(genre: "vender")
-  end
+    # 2. ドメインとURLパラメータに基づく出し分け
+    case request.host
+    when "j-work.jp"
+      allowed = ["cargo", "cleaning", "logistics", "event"]
+      if params[:genre].present?
+        return render_404 unless allowed.include?(params[:genre])
+        columns = columns.where(genre: params[:genre])
+      else
+        columns = columns.where(genre: allowed)
+      end
+    when "ri-plus.jp"
+      columns = columns.where(genre: "app")
+    when "自販機.net"
+      columns = columns.where(genre: "vender")
+    when "okey.work"
+      # マスタードメインは全表示。URLにジャンルがあれば絞り込み。
+      columns = columns.where(genre: params[:genre]) if params[:genre].present?
+    else
+      # 開発環境等
+      columns = columns.where(genre: params[:genre]) if params[:genre].present?
+    end
 
-  # status検索
-  columns = columns.where(status: params[:status]) if params[:status].present?
-
-  # 親/子フィルタ
-  if params[:article_type].present?
-    columns = columns.where(article_type: params[:article_type])
-  end
-
-  # ジャンル検索（URLパラメータがある場合）
-  if params[:genre].present?
-    allowed_genres = Column::GENRE_MAPPING[params[:genre]] || [params[:genre]]
-    columns = columns.where(genre: allowed_genres)
-  end
-
-  @columns = columns.order(updated_at: :desc)
-
-  column_ids = @columns.map(&:id)
-
-  # --- bodyが空でない子記事のみをカウント ---
-  @child_counts = if column_ids.any?
-    Column.where(parent_id: column_ids)
-          .where.not(body: [nil, ""])
-          .group(:parent_id)
-          .count
-  else
-    {}
-  end
-end
-
-def show
-  # --- SEO対策: 正規URL生成 ---
-  correct_path = nil
-
-  if request.host.include?("ri-plus.jp")
-    # app専用ドメイン
-    correct_path = column_path(@column)
-
-  elsif request.host.include?("自販機.net")
-    # vender専用ドメイン
-    correct_path = column_path(@column)
-
-  else
-    # 通常ドメイン（ジャンルURL）
-    is_valid_genre = @column.genre.present? && @column.genre.match?(/cargo|security|cleaning|construction|pest/)
-
-    correct_path = if is_valid_genre
-                     nested_column_path(genre: @column.genre, id: @column.code)
-                   else
-                     column_path(@column)
-                   end
-  end
-
-  # --- 正規URLへ301リダイレクト ---
-  if request.path != correct_path
-    return redirect_to correct_path, status: :moved_permanently
-  end
-
-  # --- 親記事（pillar）の場合は子記事を取得 ---
-  if @column.article_type == "pillar"
-    @children = @column.children
-                       .where.not(status: "draft")
-                       .where.not(body: [nil, ""])
-                       .order(updated_at: :desc)
-  else
-    @children = []
-  end
-
-  # --- Markdown 処理 ---
-  markdown_body = @column.body.presence || "## 記事はまだ生成されていません。"
-  raw_html_body = Kramdown::Document.new(markdown_body).to_html
-
-  sanitized_html_body = raw_html_body
-    .gsub(/<span[^>]*>|<\/span>/, '')
-    .gsub(/ style=\"[^\"]*\"/, '')
-
-  @headings = []
-
-  @column_body_with_ids = sanitized_html_body.gsub(/<(h[2-4])>(.*?)<\/\1>/m) do
-    tag  = Regexp.last_match(1)
-    text = Regexp.last_match(2)
-    idx  = @headings.size
-
-    @headings << {
-      tag: tag,
-      text: text,
-      id: "heading-#{idx}",
-      level: tag[1].to_i
-    }
-
-    "<#{tag} id='heading-#{idx}'>#{text}</#{tag}>"
-  end
-end
+    # 3. 共通の絞り込みとソート
+    columns = columns.where(status: params[:status]) if params[:status].present?
+    columns = columns.where(article_type: params[:article_type]) if params[:article_type].present?
+    @columns = columns.order(updated_at: :desc)
     
-  def new
-    @column = Column.new
+    # 子記事カウント
+    column_ids = @columns.map(&:id)
+    @child_counts = column_ids.any? ? Column.where(parent_id: column_ids).where.not(body: [nil, ""]).group(:parent_id).count : {}
   end
+
+  def show
+    correct_path = nil
+
+    # ドメインごとの正規URL判定
+    case request.host
+    when "j-work.jp"
+      allowed = ["cargo", "cleaning", "logistics", "event"]
+      return render_404 unless allowed.include?(@column.genre)
+      correct_path = j_work_nested_path(genre: @column.genre, id: @column.code)
+    when "ri-plus.jp"
+      return render_404 unless @column.genre == "app"
+      correct_path = ri_plus_nested_path(genre: @column.genre, id: @column.code)
+    when "自販機.net"
+      return render_404 unless @column.genre == "vender"
+      correct_path = vender_nested_path(genre: @column.genre, id: @column.code)
+    when "okey.work"
+      # マスター側で /:genre/columns/:id 形式でアクセスされた場合
+      if params[:genre].present?
+        correct_path = master_nested_path(genre: @column.genre, id: @column.code)
+      else
+        correct_path = column_path(@column)
+      end
+    else
+      correct_path = column_path(@column)
+    end
+
+    # URL正規化（301リダイレクト）
+    if correct_path && request.path != correct_path
+      return redirect_to correct_path, status: :moved_permanently
+    end
+
+    # 記事詳細表示用データの準備
+    if @column.article_type == "pillar"
+      @children = @column.children.where.not(status: "draft").where.not(body: [nil, ""]).order(updated_at: :desc)
+    else
+      @children = []
+    end
+
+    # Markdownパース処理
+    markdown_body = @column.body.presence || "## 記事はまだ生成されていません。"
+    raw_html_body = Kramdown::Document.new(markdown_body).to_html
+    sanitized_html_body = raw_html_body.gsub(/<span[^>]*>|<\/span>/, '').gsub(/ style=\"[^\"]*\"/, '')
+
+    @headings = []
+    @column_body_with_ids = sanitized_html_body.gsub(/<(h[2-4])>(.*?)<\/\1>/m) do
+      tag, text = Regexp.last_match(1), Regexp.last_match(2)
+      idx = @headings.size
+      @headings << { tag: tag, text: text, id: "heading-#{idx}", level: tag[1].to_i }
+      "<#{tag} id='heading-#{idx}'>#{text}</#{tag}>"
+    end
+  end
+
+  # --- 管理アクション (okey.workで主に使用) ---
+  def new; @column = Column.new; end
 
   def create
     @column = Column.new(column_params)
@@ -123,9 +103,7 @@ end
     end
   end
 
-  def edit
-    add_breadcrumb "記事編集", edit_column_path(@column)
-  end
+  def edit; add_breadcrumb "記事編集", edit_column_path(@column); end
 
   def update
     if @column.update(column_params)
@@ -146,134 +124,73 @@ end
     redirect_to draft_columns_path, notice: "#{created}件生成しました"
   end
 
-def draft
-  # statusがdraftのもの、または本文が空（生成未完了・失敗）のものをまとめて取得
-  @columns = Column.where(status: "draft").or(Column.where(body: [nil, ""])).order(created_at: :desc)
-end
+  def draft
+    @columns = Column.where(status: "draft").or(Column.where(body: [nil, ""])).order(created_at: :desc)
+  end
 
-  # ----- 個別承認 -----
   def approve
     unless @column.approved?
       @column.update!(status: "approved")
-      # 親子判定で本文生成ジョブを呼ぶ
       GenerateColumnBodyJob.perform_later(@column.id)
     end
-    redirect_to columns_path, notice: "承認しました。本文生成を開始します。"
+    redirect_to columns_path, notice: "承認しました。"
   end
-# ----- 一括承認・削除 -----
+
   def bulk_update_drafts
     column_ids = params[:column_ids]
-    unless column_ids.present?
-      redirect_to draft_columns_path, alert: "操作対象のドラフトが選択されていません。"
-      return
-    end
+    return redirect_to draft_columns_path, alert: "対象未選択" if column_ids.blank?
     case params[:action_type]
     when "approve_bulk"
-      columns = Column.where(id: column_ids)      
-      columns.each do |column|
-        GenerateColumnBodyJob.perform_later(column.id)
-      end
-      redirect_to columns_path, notice: "#{columns.count}件の生成ジョブをキューに入れました。順次生成されます。"
+      Column.where(id: column_ids).each { |c| GenerateColumnBodyJob.perform_later(c.id) }
+      redirect_to columns_path, notice: "生成開始"
     when "delete_bulk"
-      # (変更なし)
       count = Column.where(id: column_ids).destroy_all
-      redirect_to draft_columns_path, notice: "#{count}件のドラフトを削除しました。"
-    else
-      redirect_to draft_columns_path, alert: "無効な操作が選択されました。"
+      redirect_to draft_columns_path, notice: "#{count}件削除"
     end
   end
 
-def generate_pillar
-  # batch_count = params[:batch] || 5 # これはもう不要になります
-  
-  title    = params[:title]   # フォームから受け取るタイトル
-  genre    = params[:genre]   # フォームから受け取るジャンル
-  category = params[:choice]  # フォームから受け取るカテゴリ
-
-  if title.present?
-    # 前の回答で作成した OpenAI一本化メソッドを呼び出す
-    # これにより status: "draft" のレコードが1件作られる
-    column = GptPillarGenerator.generate_full_article(title, genre, category)
-    
-    if column
-      redirect_to draft_columns_path, notice: "親記事「#{title}」のドラフトを作成しました。一覧から本文生成を実行してください。"
+  def generate_pillar
+    if params[:title].present?
+      GptPillarGenerator.generate_full_article(params[:title], params[:genre], params[:choice])
+      redirect_to draft_columns_path, notice: "ドラフト作成完了"
     else
-      redirect_to new_column_path, alert: "生成に失敗しました。"
+      redirect_to new_column_path, alert: "タイトル未入力"
     end
-  else
-    redirect_to new_column_path, alert: "タイトルを入力してください。"
-  end
-end
-
-def generate_from_selected
-  ids = params[:column_ids]
-
-  if ids.blank?
-    redirect_to draft_columns_path, alert: "親記事を選択してください"
-    return
   end
 
-  columns = Column.where(id: ids, article_type: "pillar")
-
-  if columns.empty?
-    redirect_to draft_columns_path, alert: "有効な親記事が見つかりません"
-    return
+  def generate_from_selected
+    ids = params[:column_ids]
+    return redirect_to draft_columns_path, alert: "未選択" if ids.blank?
+    Column.where(id: ids, article_type: "pillar").each { |c| GenerateColumnBodyJob.perform_later(c.id) }
+    redirect_to draft_columns_path, notice: "生成開始"
   end
 
-  # --- 修正箇所：直接実行せず、1件ずつJobに登録する ---
-  columns.each do |column|
-    GenerateColumnBodyJob.perform_later(column.id)
-  end
-
-  redirect_to draft_columns_path,
-              notice: "#{columns.count}件の生成をバックグラウンドで開始しました。完了まで数分お待ちください。"
-end
-
-def generate_from_pillar
+  def generate_from_pillar
     @column = Column.find_by(id: params[:id]) || Column.find_by!(code: params[:id])
-    # 直接 GeminiColumnGenerator を呼ばず、Jobに丸投げする
     GenerateChildColumnsJob.perform_later(@column.id, 25)
-    redirect_to column_path(@column), notice: "子記事25件の生成をバックグラウンドで開始しました。数分後に確認してください。"
+    redirect_to column_path(@column), notice: "子記事生成開始"
   end
 
   private
 
-  def set_column
-    @column = Column.friendly.find(params[:id])
-  end
-
-  def set_noindex
-   @noindex = params[:genre].blank?
-  end
+  def set_column; @column = Column.friendly.find(params[:id]); end
+  def set_noindex; @noindex = params[:genre].blank?; end
+  def render_404; render file: "#{Rails.root}/public/404.html", status: :not_found, layout: false; end
 
   def set_breadcrumbs
-    add_breadcrumb 'トップ', root_path
-
+    add_breadcrumb 'トップ', current_root_path
     genre_key = @column&.genre.present? ? @column.genre : params[:genre]
-    
     if defined?(LpDefinition)
       label = LpDefinition.label(genre_key)
       add_breadcrumb label, "/#{genre_key}" if label
     end
-
     add_breadcrumb @column.title if action_name == 'show' && @column
   end
 
   def column_params
     params.require(:column).permit(
-      :title, 
-      :file, 
-      :choice, 
-      :keyword, 
-      :description, 
-      :genre, 
-      :code, 
-      :body, 
-      :status,
-      :article_type,
-      :parent_id, 
-      :cluster_limit,
-      :prompt
+      :title, :file, :choice, :keyword, :description, :genre, :code, 
+      :body, :status, :article_type, :parent_id, :cluster_limit, :prompt
     )
   end
 end
