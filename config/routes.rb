@@ -9,29 +9,6 @@ Rails.application.routes.draw do
     registrations: 'admins/registrations'
   }
 
-  # クライアント認証 (clients)
-  devise_for :clients, controllers: {
-    sessions: "clients/sessions",
-    registrations: "clients/registrations",
-    passwords: "clients/passwords"
-  }
-
-  # クライアント専用ディレクトリ (namespace :client)
-  namespace :client do
-    get 'dashboard/index'
-    root "dashboard#index"
-    resources :notifications
-    
-    get 'subscription', to: 'subscriptions#show', as: :subscription
-    patch 'subscription', to: 'subscriptions#update'
-    post 'subscription/cancel', to: 'subscriptions#cancel', as: :cancel_subscription
-  end
-
-  # クライアントリソース
-  resources :clients do
-    resources :push_subscriptions, only: [:index, :create]
-  end
-
   # Sidekiq 管理画面 (以前の通り維持)
   require 'sidekiq/web'
   authenticate :admin do 
@@ -102,12 +79,16 @@ Rails.application.routes.draw do
   # ================================================================
   # 4. ri-plus.jp (app のみ)
   # ================================================================
-  constraints host: 'ri-plus.jp' do
-    root to: 'tops#app', as: :ri_plus_root
-    scope ':genre/columns', constraints: { genre: /app/ } do
-      get '/',    to: 'columns#index'
-      get '/:id', to: 'columns#show'
-    end
+  constraints ->(req) { req.host == 'ri-plus.jp' || Rails.env.development? } do
+   root to: 'tops#app', as: :ri_plus_root
+   scope ':genre/columns', constraints: { genre: /app/ } do
+    get '/',    to: 'columns#index'
+    get '/:id', to: 'columns#show'
+   end
+  end
+    # 開発環境限定で localhost:3000/app にもアクセス可能
+  if Rails.env.development?
+    get '/app', to: 'tops#app', as: :app_root
   end
 
   # ================================================================
@@ -127,13 +108,4 @@ Rails.application.routes.draw do
   get 'draft/progress', to: 'draft#progress', as: :draft_progress
   resources :contracts
 
-  # 決済関連 (詳細を1行ずつ維持)
-  get 'checkout/confirmation', to: 'checkout#confirmation', as: :checkout_confirmation
-  post 'checkout/create', to: 'checkout#create', as: :checkout_create
-  get 'checkout/success', to: 'checkout#success', as: :checkout_success
-  get 'checkout/cancel', to: 'checkout#cancel', as: :checkout_cancel
-
-  # プラン選択
-  get 'plans', to: 'plans#index', as: :plans
-  post 'plans/select', to: 'plans#select', as: :select_plan
 end

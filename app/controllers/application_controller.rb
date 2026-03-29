@@ -23,6 +23,19 @@ def current_root_path
     end
   end
 
+    def current_client
+    return @current_client if defined?(@current_client)
+    return OpenStruct.new(expired?: false) if Rails.env.development?
+    super
+  end
+
+  def check_trial_expiration
+    return if Rails.env.development?  # 開発環境ではスキップ
+    if current_client.expired?
+      redirect_to expired_path
+    end
+  end
+
   def breadcrumbs
     @breadcrumbs
   end
