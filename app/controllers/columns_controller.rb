@@ -178,7 +178,7 @@ class ColumnsController < ApplicationController
   def render_404; render file: "#{Rails.root}/public/404.html", status: :not_found, layout: false; end
 
   def set_breadcrumbs
-    add_breadcrumb 'トップ', current_root_path
+    add_breadcrumb 'トップ'#, current_root_path
     genre_key = @column&.genre.present? ? @column.genre : params[:genre]
     if defined?(LpDefinition)
       label = LpDefinition.label(genre_key)
