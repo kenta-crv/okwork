@@ -47,8 +47,8 @@ Rails.application.routes.draw do
     get 'event',         to: 'tops#event'
 
     scope ':genre/columns', constraints: { genre: /cargo|cleaning|logistics|event|housekeeping|babysitter/ } do
-      get '/',    to: 'columns#index'
-      get '/:id', to: 'columns#show'
+      get 'columns/',    to: 'columns#index'
+      get 'columns/:id', to: 'columns#show'
     end
   end
 
