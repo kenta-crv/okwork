@@ -5,23 +5,7 @@ class ApplicationController < ActionController::Base
 
   before_action :init_breadcrumbs
   helper_method :breadcrumbs
-  helper_method :current_root_path
 
-def current_root_path
-    case request.host
-    when 'okey.work'
-      master_root_path
-    when 'j-work.jp'
-      j_work_root_path
-    when 'ri-plus.jp'
-      ri_plus_root_path
-    when '自販機.net'
-      vender_root_path
-    else
-      # いずれにも該当しない場合はスラッシュを返す
-      "/"
-    end
-  end
 
     def current_client
     return @current_client if defined?(@current_client)
