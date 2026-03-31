@@ -319,6 +319,11 @@ body {
   animation: popIn .6s cubic-bezier(.2,.9,.3,1) .5s both;
 }
 
+/* 最安値挑戦バッジだけ赤背景にする */
+.hero-main-badge.min-price {
+  background: linear-gradient(90deg,#E02424 0%,#FF4D4D 100%);
+}
+
 .hero-main-badge-text{
   font-family:var(--inter);
   font-size:14px;
@@ -420,6 +425,7 @@ body {
   color: #fff; /* 白文字 */
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9); /* ← 影で文字を浮かせる */
 }
+
 /* スマホ・タブレット向けレスポンシブ調整 */
 @media (max-width: 768px) {
   .hero-main-left {
@@ -451,6 +457,7 @@ body {
   .hero-main-badge-text {
     font-size: 12px;
     margin-left: 5px; /* バッジ横のテキストとの隙間 */
+    display: inline !important; /* 非表示解除 */
   }
 
   .hero-main-section {
@@ -480,6 +487,7 @@ body {
 
   .hero-main-badge-text {
     font-size: 11px;
+    display: inline !important; /* 非表示解除 */
   }
 
   .hero-main-badges {
@@ -488,11 +496,10 @@ body {
 }
 
 @media (max-width: 991px) {
-  .hero-main-badge-text,
   .hero-main-top-btn {
     display: none !important;
   }
-
+  
   .custom-navbar {
     padding: 10px 20px;
   }
@@ -541,6 +548,7 @@ body {
     font-size:0.7rem!important;
     margin-left: 5px; /* バッジとの間隔 */
     margin-top: 0;    /* 縦の余白リセット */
+    display: inline !important; /* 非表示解除 */
   }
   
   .hero-main-trial {
@@ -600,6 +608,7 @@ body {
   
   .hero-main-badge-text {
     font-size: 11px;
+    display: inline !important; /* 非表示解除 */
   }
 }
 
@@ -2128,12 +2137,12 @@ button:focus, input:focus, .btn:focus { outline: 3px solid rgba(25,140,222,0.12)
   }
   
   .jap-notto-image-2 {
-    left: 110px;
+    left: 90px;
     top: 25px;
   }
   
   .jap-notto-image-4 {
-    right: 110px;
+    right: 90px;
     top: 25px;
   }
   
