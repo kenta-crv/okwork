@@ -22,19 +22,15 @@ class ColumnsController < ApplicationController
     when "自販機.net"
       columns = columns.where(genre: "vender")
     when "okey.work"
-      # マスタードメインは全表示。URLにジャンルがあれば絞り込み。
       columns = columns.where(genre: params[:genre]) if params[:genre].present?
     else
-      # 開発環境等
       columns = columns.where(genre: params[:genre]) if params[:genre].present?
     end
 
-    # 3. 共通の絞り込みとソート
-    columns = columns.where(status: params[:status]) if params[:status].present?
-    columns = columns.where(article_type: params[:article_type]) if params[:article_type].present?
-    @columns = columns.order(updated_at: :desc)
+    @columns = columns.where(status: params[:status]) if params[:status].present?
+    @columns = @columns.where(article_type: params[:article_type]) if params[:article_type].present?
+    @columns = @columns.order(updated_at: :desc)
     
-    # 子記事カウント
     column_ids = @columns.map(&:id)
     @child_counts = column_ids.any? ? Column.where(parent_id: column_ids).where.not(body: [nil, ""]).group(:parent_id).count : {}
   end
@@ -42,22 +38,23 @@ class ColumnsController < ApplicationController
   def show
     correct_path = nil
 
-    # ドメインごとの正規URL判定
+    # routes.rb の定義 (as: :nested_column) に基づいてパスを生成
     case request.host
     when "j-work.jp"
       allowed = ["cargo", "cleaning", "logistics", "event", "housekeeping", "babysitter"]
       return render_404 unless allowed.include?(@column.genre)
-      correct_path = j_work_nested_path(genre: @column.genre, id: @column.code)
+      # routes.rb の 'columns_show' を使用
+      correct_path = columns_show_path(genre: @column.genre, id: @column.code)
     when "ri-plus.jp"
       return render_404 unless @column.genre == "app"
-      correct_path = ri_plus_nested_path(genre: @column.genre, id: @column.code)
+      correct_path = nested_column_path(genre: @column.genre, id: @column.code)
     when "自販機.net"
       return render_404 unless @column.genre == "vender"
-      correct_path = vender_nested_path(genre: @column.genre, id: @column.code)
+      correct_path = nested_column_path(genre: @column.genre, id: @column.code)
     when "okey.work"
-      # マスター側で /:genre/columns/:id 形式でアクセスされた場合
       if params[:genre].present?
-        correct_path = master_nested_path(genre: @column.genre, id: @column.code)
+        # master_nested_path ではなく nested_column_path を使用
+        correct_path = nested_column_path(genre: @column.genre, id: @column.code)
       else
         correct_path = column_path(@column)
       end
@@ -65,19 +62,16 @@ class ColumnsController < ApplicationController
       correct_path = column_path(@column)
     end
 
-    # URL正規化（301リダイレクト）
     if correct_path && request.path != correct_path
       return redirect_to correct_path, status: :moved_permanently
     end
 
-    # 記事詳細表示用データの準備
     if @column.article_type == "pillar"
       @children = @column.children.where.not(status: "draft").where.not(body: [nil, ""]).order(updated_at: :desc)
     else
       @children = []
     end
 
-    # Markdownパース処理
     markdown_body = @column.body.presence || "## 記事はまだ生成されていません。"
     raw_html_body = Kramdown::Document.new(markdown_body).to_html
     sanitized_html_body = raw_html_body.gsub(/<span[^>]*>|<\/span>/, '').gsub(/ style=\"[^\"]*\"/, '')
@@ -91,7 +85,6 @@ class ColumnsController < ApplicationController
     end
   end
 
-  # --- 管理アクション (okey.workで主に使用) ---
   def new; @column = Column.new; end
 
   def create
@@ -178,7 +171,7 @@ class ColumnsController < ApplicationController
   def render_404; render file: "#{Rails.root}/public/404.html", status: :not_found, layout: false; end
 
   def set_breadcrumbs
-    add_breadcrumb 'トップ'#, current_root_path
+    add_breadcrumb 'トップ'
     genre_key = @column&.genre.present? ? @column.genre : params[:genre]
     if defined?(LpDefinition)
       label = LpDefinition.label(genre_key)
