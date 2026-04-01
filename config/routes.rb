@@ -42,7 +42,7 @@ Rails.application.routes.draw do
   root to: 'pages#index'
 
   # 各ページ
-  get 'cleaning',      to: 'pages#cleaning'
+  get 'pages/cleaning',      to: 'pages#cleaning'
   get 'daily',         to: 'pages#daily'
   get 'housekeeping',  to: 'pages#housekeeping'
   get 'cargo',         to: 'pages#cargo'
