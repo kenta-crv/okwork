@@ -9,19 +9,30 @@ class ContractsController < ApplicationController
     def new
       @contract = Contract.new
     end
-  
-def create
+
+    def create
   @contract = Contract.new(contract_params)
 
+  # 送信元のURLを特定（j-work.jp/xxx などの元のページ）
+  # 取得できない場合は自サイトのrootへ
+  origin_url = request.referer || root_path
+
   if @contract.save
-   ContractMailer.received_email(@contract).deliver_now
-   ContractMailer.send_email(@contract).deliver_now
-   flash[:notice] = "送信完了しました"
-   redirect_to root_path
+    # メール送信
+    ContractMailer.received_email(@contract).deliver_now
+    ContractMailer.send_email(@contract).deliver_now
+
+    # 成功：元のページに「sent=1」を付けて戻す
+    separator = origin_url.include?('?') ? '&' : '?'
+    redirect_to "#{origin_url}#{separator}sent=1"
   else
+    # 失敗：エラー内容をログに出力
     p @contract.errors.full_messages
-    @contracts = Contract.order(created_at: :desc).page(params[:page]) # 必要に応じて
-    render "tops/index"
+    
+    # 失敗：元のページに「error=1」を付けて戻す（renderは使わない）
+    # renderを使うとURLが okey.work に変わってしまうため
+    separator = origin_url.include?('?') ? '&' : '?'
+    redirect_to "#{origin_url}#{separator}error=1"
   end
 end
 
