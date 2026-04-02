@@ -11,14 +11,16 @@ link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;70
 = favicon_link_tag "favicon.ico"
 
 / Google tag (gtag.js)
-script async=true src="https://www.googletagmanager.com/gtag/js?id=G-KKJH6MHMBK"
+script async=true src="https://www.googletagmanager.com/gtag/js?id=AW-10998015402"
 script
   |
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-    gtag('config', 'G-KKJH6MHMBK');
+
+    / 2. 広告とGA4の両方を設定する
     gtag('config', 'AW-10998015402');
+    gtag('config', 'G-KKJH6MHMBK');
 
 / --- application.html.slim などの head 内、または View の上部に配置 ---
 script src="https://js.pay.jp/v2/pay.js"
