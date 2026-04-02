@@ -11,6 +11,14 @@ html lang="ja"
     - if params[:sent] == '1'
       .flash-message.alert.alert-success role="alert"
         | 送信完了しました
+
+      script
+       |
+        gtag('event', 'conversion', {
+            'send_to': 'AW-10998015402/P0wGCMmaqZQcEKrLofwo',
+            'value': 1.0,
+            'currency': 'JPY'
+        });
         
     - flash.each do |type, message|
      - tag_class = (type == 'notice' ? 'success' : 'danger')
