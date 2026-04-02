@@ -7,6 +7,11 @@ html lang="ja"
     = render "layouts/header"
     .hero 
      = render "shared/breadcrumbs" if breadcrumbs.any?
+     
+    - if params[:sent] == '1'
+      .flash-message.alert.alert-success role="alert"
+        | 送信完了しました
+        
     - flash.each do |type, message|
      - tag_class = (type == 'notice' ? 'success' : 'danger')
      div class="flash-message alert alert-#{tag_class}" role="alert"
