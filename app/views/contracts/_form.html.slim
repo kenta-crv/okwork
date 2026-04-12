@@ -1,0 +1,42 @@
+.container
+  = form_with model: @contract, local: true do |f|
+    .card.shadow-sm
+      .card-body
+
+        .row.g-3
+
+          .col-md-6
+            = f.label :company, "会社名", class: "form-label"
+            = f.text_field :company, class: "form-control"
+
+          .col-md-6
+            = f.label :name, "担当者", class: "form-label"
+            = f.text_field :name, class: "form-control"
+
+          .col-md-6
+            = f.label :tel, "電話番号", class: "form-label"
+            = f.text_field :tel, class: "form-control"
+
+          .col-md-6
+            = f.label :email, "メールアドレス", class: "form-label"
+            = f.email_field :email, class: "form-control"
+
+          .col-md-12
+            = f.label :address, "所在地", class: "form-label"
+            = f.text_field :address, class: "form-control"
+
+          .col-md-12
+            = f.label :url, "URL", class: "form-label"
+            = f.text_field :url, class: "form-control"
+
+          .col-md-6
+            = f.label :period, "導入時期", class: "form-label"
+            = f.text_field :period, class: "form-control"
+
+          .col-md-12
+            = f.label :message, "備考", class: "form-label"
+            = f.text_area :message, rows: 4, class: "form-control"
+
+      .card-footer.text-end
+        = f.submit "保存", class: "btn btn-primary"
+        = link_to "戻る", contracts_path, class: "btn btn-secondary ms-2"

@@ -1,7 +1,7 @@
     - set_meta_tags title: '家事代行・ハウスキーピング・お手伝いさん募集なら『J Work』'
     - set_meta_tags description: '家事代行・ハウスキーピング・お手伝いさん募集なら『J Work』'
 
-    section.hero-main-section.position-relative(style="background-image: url(#{asset_path('housekeeping-image.png')});")
+    section.hero-main-section.position-relative(style="--bg-pc: url(#{asset_path('housekeeping-image.png')}); --bg-sp: url(#{asset_path('housekeeping-image-sp.png')});")
       .container
         .row.align-items-center.gy-4
           .col-lg-6
@@ -35,6 +35,7 @@
               h3.hero-main-trial.text-center
                 | ＼まずはご相談ください！／
               = form_with model: @contract, url: contracts_path, local: true, html: { id: "hero-main-top", class: "hero-main-form mt-3 p-4 rounded-3" } do |f|
+                = f.hidden_field :origin, value: request.path
                 .row.g-3
                   /.col-12
                     label.form-label.hero-main-label

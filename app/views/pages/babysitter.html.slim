@@ -1,7 +1,8 @@
     - set_meta_tags title: '英語ができる外国人ベビーシッター・キッズケアなら『J Work』'
     - set_meta_tags description: '英語が堪能な外国人スタッフによる安心・安全なベビーシッターなら『J Work』。遊びや生活の中で自然に英語に触れる、新しいキッズケアをご提案します。'
 
-    section.hero-main-section.position-relative(style="background-image: url(#{asset_path('babysitter-image.png')});")
+
+    section.hero-main-section.position-relative(style="--bg-pc: url(#{asset_path('babysitter-image.png')}); --bg-sp: url(#{asset_path('babysitter-image-sp.png')});")
       .container
         .row.align-items-center.gy-4
           .col-lg-6
@@ -35,13 +36,8 @@
               h3.hero-main-trial.text-center
                 | ＼まずはご相談ください！／
               = form_with model: @contract, url: contracts_path, local: true, html: { id: "hero-main-top", class: "hero-main-form mt-3 p-4 rounded-3" } do |f|
+                = f.hidden_field :origin, value: request.path
                 .row.g-3
-                  /.col-12
-                    label.form-label.hero-main-label
-                      | お名前（保護者名） 
-                      span.required-badge
-                        | 必須
-                    = f.text_field :company, class: "form-control hero-main-input", placeholder: "山田太郎", required: true
                   .col-12
                     label.form-label.hero-main-label
                       | お申込者様名

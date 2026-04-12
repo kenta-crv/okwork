@@ -39,7 +39,7 @@ Rails.application.routes.draw do
   # ================================================================
   
   # トップページ
-  root to: 'pages#index'
+  #root to: 'pages#index'
 
   # 各ページ
   get 'pages/resources',      to: 'pages#resources'
@@ -78,7 +78,7 @@ Rails.application.routes.draw do
   get ':genre/columns/:id', to: 'columns#show',  as: :nested_column
 
   # ri-plus.jp 用ページ
-  get 'app', to: 'pages#app', as: :app_root
+  get 'pages/app', to: 'pages#app'
 
   # 自販機.net 用ページ
   get 'vender', to: 'pages#vender', as: :vender_root

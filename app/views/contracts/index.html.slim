@@ -1,23 +1,32 @@
-h1.text-2xl.font-bold.mb-6 契約一覧
+h1.mb-4 契約一覧
 
-div.space-y-4
-  - @contracts.each do |contract|
-    div.border.rounded-xl.p-4.shadow-sm
-      div.flex.justify-between.items-center
-        h2.text-lg.font-semibold = contract.company
-        span.text-sm.text-gray-500 = contract.created_at.strftime("%Y-%m-%d")
+.container
+  table.table.table-hover.align-middle
+    thead.table-light
+      tr
+        th 会社名
+        th 担当者
+        th 電話
+        th メール
+        th 日付
+        th.text-end 操作
 
-      p.mt-2.text-sm
-        | 担当者：
-        span.font-medium = contract.name
+    tbody
+      - @contracts.each do |contract|
+        tr
+          td.fw-semibold = contract.company
+          td = contract.name
+          td = contract.tel
+          td = contract.email
+          td.text-muted = contract.created_at.strftime("%Y-%m-%d")
 
-      div.mt-2.text-sm.text-gray-600
-        p = "📞 #{contract.tel}"
-        p = "✉️ #{contract.email}"
+          td.text-end
+            = link_to "詳細", contract_path(contract), class: "btn btn-sm btn-outline-primary me-1"
+            = link_to "編集", edit_contract_path(contract), class: "btn btn-sm btn-outline-success me-1"
+            = link_to "削除", contract_path(contract),
+              method: :delete,
+              data: { confirm: "本当に削除しますか？" },
+              class: "btn btn-sm btn-outline-danger"
 
-      div.mt-4.space-x-3.text-sm
-        = link_to "詳細", contract_path(contract), class: "text-blue-600"
-        = link_to "編集", edit_contract_path(contract), class: "text-green-600"
-        = link_to "削除", contract_path(contract), method: :delete, data: { confirm: "本当に削除しますか？" }, class: "text-red-600"
-
-= paginate @contracts
+.mt-3
+  = paginate @contracts

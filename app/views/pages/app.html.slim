@@ -1,4 +1,7 @@
-    section.hero-main-section.position-relative(style="background-image: url(#{asset_path('base.webp')});")
+    - set_meta_tags title: '家事代行・ハウスキーピング・お手伝いさん募集なら『J Work』'
+    - set_meta_tags description: '家事代行・ハウスキーピング・お手伝いさん募集なら『J Work』'
+
+    section.hero-main-section.position-relative(style="--bg-pc: url(#{asset_path('app-image.png')}); --bg-sp: url(#{asset_path('app-image-sp.png')});")
       .container
         .row.align-items-center.gy-4
           .col-lg-6
@@ -120,7 +123,7 @@
             br
             |  企業が主体的に問い合わせた「成約に直結する商談」のみを提供します。
         .japan-notyo-column.japan-notyo-image-column
-          = image_tag "image.png", class: "japan-notyo-image", alt: "Tool illustration"
+          = image_tag "app-icon.png", class: "japan-notyo-image", alt: "Tool illustration"
     section.jap-notto-section
       .jap-notto-container
         h2.jap-notto-heading
@@ -183,7 +186,29 @@
             .col-lg-6
               article.ser-mos-card
                 .ser-mos-card-media
-                  = image_tag "ser-app4.png", class: "ser-mos-card-img", alt: "Service 4"
+                  = image_tag "ser-app8.png", class: "ser-mos-card-img", alt: "Service 4"
+                h3.ser-mos-card-title
+                  | 行動データに基づく最適な導線設計
+                p.ser-mos-card-desc
+                  |   興味関心データをリアルタイムで解析し、関心度の高い企業情報を即時に提示します。
+                /button.ser-mos-card-btn
+                  | 詳しく見る 
+                  = image_tag "left-icon.png", class: "ser-mos-btn-ic", alt: "arrow"
+            .col-lg-6
+              article.ser-mos-card
+                .ser-mos-card-media
+                  = image_tag "ser-app9.png", class: "ser-mos-card-img", alt: "Service 5"
+                h3.ser-mos-card-title
+                  | 開封データの可視化と行動解析
+                p.ser-mos-card-desc
+                  |  メールや資料の閲覧状況をリアルタイムで可視化し、開封・未開封に応じた最適なアプローチを実現します。
+                /button.ser-mos-card-btn
+                  | 詳しく見る 
+                  = image_tag "left-icon.png", class: "ser-mos-btn-ic", alt: "arrow"
+            .col-lg-6
+              article.ser-mos-card
+                .ser-mos-card-media
+                  = image_tag "ser-app10.png", class: "ser-mos-card-img", alt: "Service 6"
                 h3.ser-mos-card-title
                   | 有効商談のみを選別して提供
                 p.ser-mos-card-desc
@@ -200,7 +225,7 @@
       .container-fluid.main-moss-block
         .row.align-items-center
           .col-lg-6.text-center
-            = image_tag "main-app1.png", class: "main-moss-img img-fluid", alt: "Feature Image"
+            = image_tag "main-app5.png", class: "main-moss-img img-fluid", alt: "Feature Image"
           .col-lg-6.text-center.main-moss-content
             h3.main-moss-block-title
               | 成約に直結する「能動的」な商談
@@ -209,7 +234,7 @@
       .container-fluid.main-moss-block
         .row.align-items-center.flex-row-reverse
           .col-lg-6.text-center
-            = image_tag "main-app2.png", class: "main-moss-img img-fluid", alt: "Feature Image"
+            = image_tag "main-app6.png", class: "main-moss-img img-fluid", alt: "Feature Image"
           .col-lg-6.text-center.main-moss-content
             h3.main-moss-block-title
               | テクノロジーによる大量架電の実現
@@ -218,12 +243,31 @@
       .container-fluid.main-moss-block
         .row.align-items-center
           .col-lg-6.text-center
-            = image_tag "main-app3.png", class: "main-moss-img img-fluid", alt: "Feature Image"
+            = image_tag "main-app7.png", class: "main-moss-img img-fluid", alt: "Feature Image"
           .col-lg-6.text-center.main-moss-content
             h3.main-moss-block-title
               | 安心のパッケージ料金モデル
             p.main-moss-block-desc
               |  リスト抽出からフォーム営業、AI架電までをパッケージ化。透明性の高い料金体系で、リスクを抑えた営業活動の加速をサポートします。
+      .container-fluid.main-moss-block
+        .row.align-items-center.flex-row-reverse
+          .col-lg-6.text-center
+            = image_tag "main-cargo3.png", class: "main-moss-img img-fluid", alt: "Feature Image"
+          .col-lg-6.text-center.main-moss-content
+            h3.main-moss-block-title
+              | 日本全国対応
+            p.main-moss-block-desc
+              |  営業アプローチ先は東京・名古屋・大阪はもちろんのこと、北海道から沖縄までどこでも対応可能。
+      .container-fluid.main-moss-block
+        .row.align-items-center
+          .col-lg-6.text-center
+            = image_tag "main-app8.png", class: "main-moss-img img-fluid", alt: "Feature Image"
+          .col-lg-6.text-center.main-moss-content
+            h3.main-moss-block-title
+              | 最短１ヶ月で解約OK
+            p.main-moss-block-desc
+              |  ご利用は１ヶ月〜可能となっているので、満足できなければいつでも解約いただけます。（ライトプランの場合）
+
 
     section.pricing-cards-section[style="background-image: url('#{asset_path('bg-imagee.png')}');"]
       .container
@@ -420,7 +464,7 @@
     .section#case.cards-moos-section.py-5
       .container.text-center
         h2.cards-moos-title.mb-5
-          | AI営業代行・有効商談獲得記事一覧
+          | AI営業代行記事一覧
         .row.g-4.cards-moos-row.d-none.d-md-flex
           - Column.where(genre: "app").order(created_at: :desc).limit(3).each do |column|
             .col-lg-4.col-md-6
@@ -448,7 +492,16 @@
               = image_tag "closee.png", class: "faq-japan-icon", alt: "toggle icon"
             .faq-japan-answer
               p
-                |  『Okurite』では、AIアプローチに対して顧客が主体的に問い合わせや返信を行い、商談の合意が取れた状態を「有効商談」と定義しています。単なるリストの提供ではなく、興味関心が高い状態での接続を保証します。
+                |  『Okurite』では、AIアプローチに対して顧客が主体的に問い合わせや返信を行い、商談の合意が取れた状態を「有効商談」と基本定義しています。しかし、成功報酬会社ではないため、具体的な商談定義は、取引企業様毎に決定しております。
+          .faq-japan-item
+            .faq-japan-question.d-flex.align-items-center.justify-content-between
+              p
+                | 毎月の報告はありますか？
+              = image_tag "closee.png", class: "faq-japan-icon", alt: "toggle icon"
+            .faq-japan-answer
+              p
+                |  はい。毎月の実績報告および、Webミーティングで毎月状況報告とPDCA設計を行います。
+
           .faq-japan-item
             .faq-japan-question.d-flex.align-items-center.justify-content-between
               p
@@ -456,7 +509,7 @@
               = image_tag "closee.png", class: "faq-japan-icon", alt: "toggle icon"
             .faq-japan-answer
               p
-                |  基本的にはBtoB全般で利用可能ですが、公的機関やHPを持たない個人商店、極端に問い合わせフォームを制限している一部のニッチ業種は対象外となる場合があります。AIがリスト抽出時に判別いたします。
+                |  基本的にはBtoB全般で利用可能ですが、問い合わせフォームの形式が通常と異なる場合は、AI対策をしている先にアプローチすることはできません。全件送信を実現したい場合、手動送信が可能なエンタープライズを導入してください。
           .faq-japan-item
             .faq-japan-question.d-flex.align-items-center.justify-content-between
               p
@@ -472,7 +525,7 @@
               = image_tag "closee.png", class: "faq-japan-icon", alt: "toggle icon"
             .faq-japan-answer
               p
-                |  SaaS、人材サービス、広告、コンサルティングなど、BtoB向けのサービス全般で高い効果を発揮します。特に「比較検討の余地がある商材」や「解決したい課題が明確なサービス」は、AIによるターゲティングと非常に相性が良いです。
+                |  SaaS、人材サービス、広告、コンサルティングなど、BtoB向けのサービス全般で高い効果を発揮します。定期的に同一企業へのアプローチも可能なので、取りこぼしを最小限にアプローチできます。
     section.cards-moos-section.py-5
       .container.text-center
         h2.cards-moos-title.mb-5

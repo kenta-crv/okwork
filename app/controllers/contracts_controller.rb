@@ -38,7 +38,7 @@ end
 
     def show
       @contract = Contract.find(params[:id])
-      @comment = Comment.new
+      #@comment = Comment.new
     end
   
     def edit
@@ -73,6 +73,7 @@ end
       :url,
       :period, #導入時期
       :message, #備考
+      :origin,
       )
     end
 end
