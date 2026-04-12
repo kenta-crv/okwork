@@ -12,6 +12,8 @@ class PagesController < ApplicationController
   def cleaning; end
   def daily; end
   def housekeeping; end
+  def baby; end
+  def babysitter; end
   def event; end
   def logistics; end
   def app; end
