@@ -317,6 +317,7 @@ section#inquiry
         h3.hero-main-trial2.text-center
           | ＼まずはご相談ください！／
         = form_with model: @contract, url: contracts_path, local: true, html: { id: "hero-main-top", class: "hero-main-form mt-3 p-4 rounded-3" } do |f|
+                = f.hidden_field :origin, value: request.path
                 .row.g-3
                   .col-12
                     label.form-label.hero-main-label

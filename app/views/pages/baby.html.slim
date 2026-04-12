@@ -481,16 +481,11 @@
             h3.hero-main-trial2.text-center
               | ＼最短即日！まずはご相談ください／
             = form_with model: @contract, url: contracts_path, local: true, html: { id: "hero-main-top", class: "hero-main-form mt-3 p-4 rounded-3" } do |f|
+                = f.hidden_field :origin, value: request.path
                 .row.g-3
                   .col-12
                     label.form-label.hero-main-label
-                      | お名前（または保護者名） 
-                      span.required-badge
-                        | 必須
-                    = f.text_field :company, class: "form-control hero-main-input", placeholder: "山田太郎", required: true
-                  .col-12
-                    label.form-label.hero-main-label
-                      | ご連絡者様名（ご家族の場合）
+                      | お申込者様名
                       span.required-badge
                         | 必須
                     = f.text_field :name, class: "form-control hero-main-input", placeholder: "山田太郎", required: true
@@ -508,12 +503,6 @@
                     = f.text_field :address, class: "form-control hero-main-input", placeholder: "東京都東京市東京町1-1-1東京ビル111", required: true
                   .col-12
                     label.form-label.hero-main-label
-                      | お子様の人数・年齢
-                      span.required-badge
-                        | 必須
-                    = f.text_field :url, class: "form-control hero-main-input", placeholder: "3歳 1名、5歳 1名", required: true
-                  .col-12
-                    label.form-label.hero-main-label
                       | メールアドレス 
                       span.required-badge
                         | 必須
@@ -523,7 +512,7 @@
                       | 備考・要望（お悩み等） 
                       span.required-badge
                         | 任意
-                    = f.text_area :message, class: "form-control hero-main-input", placeholder:"（例）希望の日時やお子様のアレルギー、重点的にしてほしいこと（教育、遊び、送迎）など"
+                    = f.text_area :message, class: "form-control hero-main-input", placeholder:"（例）お子様の年齢や、シッターに重点的にしてほしいこと（宿題、遊びなど）"
                   .col-12
                     = f.submit "まずは無料で見積から", class: "btn hero-main-submit w-100"
     / company overview block
