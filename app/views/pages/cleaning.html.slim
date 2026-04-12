@@ -422,3 +422,11 @@
     script[src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"]
     script[src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"]
     script[src="js/script.js"]
+
+    - if params[:sent] == "1"
+     script
+      | gtag('event', 'conversion', {
+      |     'send_to': 'AW-10998015402/P0wGCMmaqZQcEKrLofwo',
+      |     'value': 1.0,
+      |     'currency': 'JPY'
+      | });
