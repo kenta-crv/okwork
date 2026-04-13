@@ -39,7 +39,7 @@ Rails.application.routes.draw do
   # ================================================================
   
   # トップページ
-  #root to: 'pages#index'
+  root to: 'columns#index'
 
   # 各ページ
   get 'pages/resources',      to: 'pages#resources'
