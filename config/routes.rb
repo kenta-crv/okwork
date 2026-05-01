@@ -42,15 +42,15 @@ Rails.application.routes.draw do
   root to: 'columns#index'
 
   # 各ページ
-  get 'pages/resources',      to: 'pages#resources'
-  get 'pages/cleaning',      to: 'pages#cleaning'
-  get 'pages/daily',         to: 'pages#daily'
-  get 'pages/housekeeping',  to: 'pages#housekeeping'
-  get 'pages/babysitter',    to: 'pages#babysitter'
-  get 'pages/baby',    to: 'pages#baby'
-  get 'pages/cargo',         to: 'pages#cargo'
-  get 'pages/logistics',     to: 'pages#logistics'
-  get 'pages/event',         to: 'pages#event'
+  #get 'pages/resources',      to: 'pages#resources'
+  #get 'pages/cleaning',      to: 'pages#cleaning'
+  #get 'pages/daily',         to: 'pages#daily'
+  #get 'pages/housekeeping',  to: 'pages#housekeeping'
+  #get 'pages/babysitter',    to: 'pages#babysitter'
+  #get 'pages/baby',    to: 'pages#baby'
+  #get 'pages/cargo',         to: 'pages#cargo'
+  #get 'pages/logistics',     to: 'pages#logistics'
+  #get 'pages/event',         to: 'pages#event'
 
   # columns ページ
   scope ':genre/columns', constraints: { genre: /cargo|cleaning|logistics|event|housekeeping|babysitter/ } do
@@ -59,30 +59,30 @@ Rails.application.routes.draw do
   end
 
   # ユーザー関連ページなど
-  get 'users', to: 'users#index'
+  #get 'users', to: 'users#index'
 
   # ================================================================
   # 3. okey.work や他ドメイン固有ページもシンプルに
   # ================================================================
   
   # マスタードメイン (okey.work)
-  get 'construction', to: 'pages#construction'
-  get 'security',     to: 'pages#security'
-  get 'short',        to: 'pages#short'
-  get 'vender',       to: 'pages#vender'
-  get 'recruit',      to: 'pages#recruit'
-  get 'bpo',          to: 'pages#bpo'
-  get 'pest',         to: 'pages#pest'
-  get 'ads',          to: 'pages#ads'
+  #get 'construction', to: 'pages#construction'
+  #get 'security',     to: 'pages#security'
+  #get 'short',        to: 'pages#short'
+  #get 'vender',       to: 'pages#vender'
+  #get 'recruit',      to: 'pages#recruit'
+  #get 'bpo',          to: 'pages#bpo'
+  #get 'pest',         to: 'pages#pest'
+  #get 'ads',          to: 'pages#ads'
 
   get ':genre/columns',     to: 'columns#index', as: :nested_columns
   get ':genre/columns/:id', to: 'columns#show',  as: :nested_column
 
   # ri-plus.jp 用ページ
-  get 'pages/app', to: 'pages#app'
+  #get 'pages/app', to: 'pages#app'
 
   # 自販機.net 用ページ
-  get 'vender', to: 'pages#vender', as: :vender_root
+  #get 'vender', to: 'pages#vender', as: :vender_root
 
   # ================================================================
   # 4. 共通の付随機能
