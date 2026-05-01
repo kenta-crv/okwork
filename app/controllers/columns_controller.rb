@@ -8,23 +8,31 @@ def index
 
   case request.host
   when "column.okey.work"
-    # ★ ハブ：全ジャンル表示（制限なし）
+    # ハブ：全表示
     columns = columns
 
   when "j-work.jp"
-    return render_404 if params[:genre].present? && params[:genre] != "cargo"
+    if params[:genre].present? && params[:genre] != "cargo"
+      return render_404
+    end
     columns = columns.where(genre: "cargo")
 
   when "ri-plus.jp"
-    return render_404 if params[:genre].present? && params[:genre] != "app"
+    if params[:genre].present? && params[:genre] != "app"
+      return render_404
+    end
     columns = columns.where(genre: "app")
 
   when "自販機.net"
-    return render_404 if params[:genre].present? && params[:genre] != "vender"
+    if params[:genre].present? && params[:genre] != "vender"
+      return render_404
+    end
     columns = columns.where(genre: "vender")
 
   when "okey.work"
-    return render_404 if params[:genre].present? && params[:genre] != "cleaning"
+    if params[:genre].present? && params[:genre] != "cleaning"
+      return render_404
+    end
     columns = columns.where(genre: "cleaning")
 
   else
@@ -53,7 +61,7 @@ def show
 
   case request.host
   when "column.okey.work"
-    # ★ ハブ：全ジャンル許可（制限なし）
+    # ハブ：制限なし
     if params[:genre].present?
       correct_path = nested_column_path(genre: @column.genre, id: @column.code)
     else
