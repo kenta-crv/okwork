@@ -4,43 +4,46 @@ class ColumnsController < ApplicationController
   before_action :set_noindex
 
 def index
-    # 1. ドメインごとの許可ジャンル定義
-    allowed_genres = case request.host
+    # 1. ドメインごとに「そのサイトが表示して良いジャンル」を厳格に定義
+    # ここに含まれないジャンルは、たとえデータベースにあってもそのドメインでは表示させない
+    @allowed_genres = case request.host
                      when "ri-plus.jp"
                        ["app"]
                      when "自販機.net"
                        ["vender"]
                      when "j-work.jp"
-                       ["cargo"] # ご要望に合わせて cargo のみに制限（以前は複数ありましたが調整）
+                       ["cargo", "cleaning", "logistics", "event", "housekeeping", "babysitter"]
                      when "okey.work"
                        ["cleaning"]
                      when "column.okey.work"
-                       nil # 全許可
+                       nil # 全解放
                      else
-                       nil # その他管理用など
+                       nil
                      end
 
-    # 2. 不正なジャンル指定のガード
-    if allowed_genres.present?
-      if params[:genre].present? && !allowed_genres.include?(params[:genre])
-        return render_404
-      end
-    end
-
-    # 3. 公開済みデータのベース取得
+    # 2. 公開済みデータのベース
     columns = Column.where.not(status: "draft").where.not(body: [nil, ""])
 
-    # 4. ジャンルによる絞り込み
-    if allowed_genres.present?
-      # ドメイン制限がある場合
-      target_genre = params[:genre] || allowed_genres
-      columns = columns.where(genre: target_genre)
-    elsif params[:genre].present?
-      # 制限はないがパラメータがある場合
-      columns = columns.where(genre: params[:genre])
+    # 3. ジャンル絞り込みの徹底
+    if @allowed_genres.present?
+      # URLパラメータでジャンル指定がある場合、それが許可リスト内かチェック
+      if params[:genre].present?
+        if @allowed_genres.include?(params[:genre])
+          columns = columns.where(genre: params[:genre])
+        else
+          # 許可されていないジャンルを叩かれたら404
+          return render_404
+        end
+      else
+        # パラメータがない場合（/columns 直接など）、そのドメインの許可ジャンルのみに限定
+        columns = columns.where(genre: @allowed_genres)
+      end
+    else
+      # 制限がないドメイン（column.okey.work等）でパラメータがある場合
+      columns = columns.where(genre: params[:genre]) if params[:genre].present?
     end
 
-    # 5. 共通の絞り込み
+    # 4. 共通の絞り込み
     columns = columns.where(status: params[:status]) if params[:status].present?
     columns = columns.where(article_type: params[:article_type]) if params[:article_type].present?
     @columns = columns.order(updated_at: :desc)
@@ -51,33 +54,37 @@ def index
   end
 
   def show
-    # 1. ドメインごとの許可チェック
-    is_allowed = case request.host
-                 when "ri-plus.jp"
-                   @column.genre == "app"
-                 when "自販機.net"
-                   @column.genre == "vender"
-                 when "j-work.jp"
-                   @column.genre == "cargo"
-                 when "okey.work"
-                   @column.genre == "cleaning"
-                 when "column.okey.work"
-                   true
-                 else
-                   true
-                 end
+    # 1. 閲覧中のドメインで、その記事のジャンルが表示許可されているか再チェック
+    allowed_genres_for_show = case request.host
+                             when "ri-plus.jp"
+                               ["app"]
+                             when "自販機.net"
+                               ["vender"]
+                             when "j-work.jp"
+                               ["cargo", "cleaning", "logistics", "event", "housekeeping", "babysitter"]
+                             when "okey.work"
+                               ["cleaning"]
+                             when "column.okey.work"
+                               nil # 全許可
+                             else
+                               nil
+                             end
 
-    return render_404 unless is_allowed
+    # 記事のジャンルが許可リストにない場合は404（appの記事をj-workで開こうとした場合など）
+    if allowed_genres_for_show.present? && !allowed_genres_for_show.include?(@column.genre)
+      return render_404
+    end
 
-    # 2. 正規URLの構築
-    # column.okey.work や管理画面経由以外は、必ず :genre/columns/:id 形式へ
-    correct_path = if request.host == "column.okey.work" || params[:genre].blank?
+    # 2. 正規URL（301リダイレクト）ロジック
+    # パラメータにgenreが含まれている正規ルートでのアクセスか確認
+    correct_path = if allowed_genres_for_show.nil? || params[:genre].blank?
+                     # 管理画面やハブサイトは通常のパス
                      column_path(@column)
                    else
+                     # 各サイトの正規パス (:genre/columns/:id)
                      columns_show_path(genre: @column.genre, id: @column.code)
                    end
 
-    # URL正規化（301リダイレクト）
     if correct_path && request.path != correct_path
       return redirect_to correct_path, status: :moved_permanently
     end
@@ -102,7 +109,7 @@ def index
       "<#{tag} id='heading-#{idx}'>#{text}</#{tag}>"
     end
   end
-  
+
 
   # --- 管理用 ---
   def new; @column = Column.new; end
