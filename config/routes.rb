@@ -1,59 +1,54 @@
-# config/routes.rb
 Rails.application.routes.draw do
   # ================================================================
   # 1. 共通基盤設定
   # ================================================================
 
-  # 管理者認証 (admins)
   devise_for :admins, controllers: {
     sessions: 'admins/sessions',
     registrations: 'admins/registrations'
   }
 
-  # Sidekiq 管理画面
   require 'sidekiq/web'
   authenticate :admin do 
     mount Sidekiq::Web, at: "/sidekiq"
   end
 
-  # ================================================================
-  # 2. 管理系（衝突防止のため /admin 配下に隔離）
-  # ================================================================
+  # コラム管理
+  post 'columns/generate_from_selected', to: 'columns#generate_from_selected', as: :generate_from_selected_columns_fix
+  post 'columns/bulk_update_drafts', to: 'columns#bulk_update_drafts', as: :bulk_update_drafts_columns_fix
 
-  namespace :admin do
-    resources :columns do
-      collection do
-        get :draft
-        post :generate_gemini
-        post :generate_pillar
-        post :generate_from_selected
-        match 'bulk_update_drafts', via: [:post, :patch]
-      end
-      member do
-        post :generate_from_pillar
-        patch :approve
-      end
+  resources :columns do
+    collection do
+      get :draft
+      post :generate_gemini
+      post :generate_pillar
+      post :generate_from_selected
+      match 'bulk_update_drafts', via: [:post, :patch]
+    end
+    member do
+      post :generate_from_pillar
+      patch :approve
     end
   end
 
   # ================================================================
-  # 3. 公開ルーティング（これがメイン）
+  # 2. ルート構造（ここが重要）
   # ================================================================
 
   # トップ
   root to: 'columns#index'
 
-  # /columns（ドメインごとにControllerで制御）
-  get '/columns', to: 'columns#index'
+  # ★ columns直叩きを禁止（重要）
+  get '/columns', to: ->(env) { [404, {}, ['Not Found']] }
 
-  # ジャンル付きURL（正規）
+  # ★ 正規ルート（制約あり）
   scope ':genre/columns', constraints: { genre: /cargo|cleaning|logistics|event|housekeeping|babysitter|app|vender/ } do
     get '/',    to: 'columns#index', as: :columns_index
     get '/:id', to: 'columns#show',  as: :columns_show
   end
 
   # ================================================================
-  # 4. 固定ページ（okey.work等）
+  # 3. 固定ページ
   # ================================================================
 
   get 'construction', to: 'pages#construction'
@@ -66,7 +61,7 @@ Rails.application.routes.draw do
   get 'ads',          to: 'pages#ads'
 
   # ================================================================
-  # 5. 共通機能
+  # 4. 共通機能
   # ================================================================
 
   get 'draft/progress', to: 'draft#progress', as: :draft_progress

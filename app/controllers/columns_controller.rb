@@ -4,126 +4,105 @@ class ColumnsController < ApplicationController
   before_action :set_noindex
 
 def index
-  columns = Column.where.not(status: "draft").where.not(body: [nil, ""])
+    # 1. ドメインごとの許可ジャンル定義
+    allowed_genres = case request.host
+                     when "ri-plus.jp"
+                       ["app"]
+                     when "自販機.net"
+                       ["vender"]
+                     when "j-work.jp"
+                       ["cargo"] # ご要望に合わせて cargo のみに制限（以前は複数ありましたが調整）
+                     when "okey.work"
+                       ["cleaning"]
+                     when "column.okey.work"
+                       nil # 全許可
+                     else
+                       nil # その他管理用など
+                     end
 
-  case request.host
-  when "column.okey.work"
-    # ハブ：全表示
-    columns = columns
-
-  when "j-work.jp"
-    if params[:genre].present? && params[:genre] != "cargo"
-      return render_404
+    # 2. 不正なジャンル指定のガード
+    if allowed_genres.present?
+      if params[:genre].present? && !allowed_genres.include?(params[:genre])
+        return render_404
+      end
     end
-    columns = columns.where(genre: "cargo")
 
-  when "ri-plus.jp"
-    if params[:genre].present? && params[:genre] != "app"
-      return render_404
+    # 3. 公開済みデータのベース取得
+    columns = Column.where.not(status: "draft").where.not(body: [nil, ""])
+
+    # 4. ジャンルによる絞り込み
+    if allowed_genres.present?
+      # ドメイン制限がある場合
+      target_genre = params[:genre] || allowed_genres
+      columns = columns.where(genre: target_genre)
+    elsif params[:genre].present?
+      # 制限はないがパラメータがある場合
+      columns = columns.where(genre: params[:genre])
     end
-    columns = columns.where(genre: "app")
 
-  when "自販機.net"
-    if params[:genre].present? && params[:genre] != "vender"
-      return render_404
-    end
-    columns = columns.where(genre: "vender")
-
-  when "okey.work"
-    if params[:genre].present? && params[:genre] != "cleaning"
-      return render_404
-    end
-    columns = columns.where(genre: "cleaning")
-
-  else
-    columns = columns.where(genre: params[:genre]) if params[:genre].present?
+    # 5. 共通の絞り込み
+    columns = columns.where(status: params[:status]) if params[:status].present?
+    columns = columns.where(article_type: params[:article_type]) if params[:article_type].present?
+    @columns = columns.order(updated_at: :desc)
+    
+    # 子記事カウント
+    column_ids = @columns.map(&:id)
+    @child_counts = column_ids.any? ? Column.where(parent_id: column_ids).where.not(body: [nil, ""]).group(:parent_id).count : {}
   end
 
-  columns = columns.where(status: params[:status]) if params[:status].present?
-  columns = columns.where(article_type: params[:article_type]) if params[:article_type].present?
+  def show
+    # 1. ドメインごとの許可チェック
+    is_allowed = case request.host
+                 when "ri-plus.jp"
+                   @column.genre == "app"
+                 when "自販機.net"
+                   @column.genre == "vender"
+                 when "j-work.jp"
+                   @column.genre == "cargo"
+                 when "okey.work"
+                   @column.genre == "cleaning"
+                 when "column.okey.work"
+                   true
+                 else
+                   true
+                 end
 
-  @columns = columns.order(updated_at: :desc)
+    return render_404 unless is_allowed
 
-  column_ids = @columns.map(&:id)
-  @child_counts =
-    if column_ids.any?
-      Column.where(parent_id: column_ids)
-            .where.not(body: [nil, ""])
-            .group(:parent_id)
-            .count
+    # 2. 正規URLの構築
+    # column.okey.work や管理画面経由以外は、必ず :genre/columns/:id 形式へ
+    correct_path = if request.host == "column.okey.work" || params[:genre].blank?
+                     column_path(@column)
+                   else
+                     columns_show_path(genre: @column.genre, id: @column.code)
+                   end
+
+    # URL正規化（301リダイレクト）
+    if correct_path && request.path != correct_path
+      return redirect_to correct_path, status: :moved_permanently
+    end
+
+    # 記事詳細表示用データの準備
+    if @column.article_type == "pillar"
+      @children = @column.children.where.not(status: "draft").where.not(body: [nil, ""]).order(updated_at: :desc)
     else
-      {}
-    end
-end
-
-def show
-  correct_path = nil
-
-  case request.host
-  when "column.okey.work"
-    # ハブ：制限なし
-    if params[:genre].present?
-      correct_path = nested_column_path(genre: @column.genre, id: @column.code)
-    else
-      correct_path = column_path(@column)
+      @children = []
     end
 
-  when "j-work.jp"
-    return render_404 unless @column.genre == "cargo"
-    correct_path = columns_show_path(genre: "cargo", id: @column.code)
+    # Markdownパース
+    markdown_body = @column.body.presence || "## 記事はまだ生成されていません。"
+    raw_html_body = Kramdown::Document.new(markdown_body).to_html
+    sanitized_html_body = raw_html_body.gsub(/<span[^>]*>|<\/span>/, '').gsub(/ style=\"[^\"]*\"/, '')
 
-  when "ri-plus.jp"
-    return render_404 unless @column.genre == "app"
-    correct_path = nested_column_path(genre: "app", id: @column.code)
-
-  when "自販機.net"
-    return render_404 unless @column.genre == "vender"
-    correct_path = nested_column_path(genre: "vender", id: @column.code)
-
-  when "okey.work"
-    return render_404 unless @column.genre == "cleaning"
-    correct_path = nested_column_path(genre: "cleaning", id: @column.code)
-
-  else
-    correct_path = column_path(@column)
+    @headings = []
+    @column_body_with_ids = sanitized_html_body.gsub(/<(h[2-4])>(.*?)<\/\1>/m) do
+      tag, text = Regexp.last_match(1), Regexp.last_match(2)
+      idx = @headings.size
+      @headings << { tag: tag, text: text, id: "heading-#{idx}", level: tag[1].to_i }
+      "<#{tag} id='heading-#{idx}'>#{text}</#{tag}>"
+    end
   end
-
-  if correct_path && request.path != correct_path
-    return redirect_to correct_path, status: :moved_permanently
-  end
-
-  if @column.article_type == "pillar"
-    @children = @column.children
-                       .where.not(status: "draft")
-                       .where.not(body: [nil, ""])
-                       .order(updated_at: :desc)
-  else
-    @children = []
-  end
-
-  markdown_body = @column.body.presence || "## 記事はまだ生成されていません。"
-  raw_html_body = Kramdown::Document.new(markdown_body).to_html
-
-  sanitized_html_body = raw_html_body
-    .gsub(/<span[^>]*>|<\/span>/, '')
-    .gsub(/ style=\"[^\"]*\"/, '')
-
-  @headings = []
-  @column_body_with_ids = sanitized_html_body.gsub(/<(h[2-4])>(.*?)<\/\1>/m) do
-    tag  = Regexp.last_match(1)
-    text = Regexp.last_match(2)
-
-    idx = @headings.size
-    @headings << {
-      tag: tag,
-      text: text,
-      id: "heading-#{idx}",
-      level: tag[1].to_i
-    }
-
-    "<#{tag} id='heading-#{idx}'>#{text}</#{tag}>"
-  end
-end
+  
 
   # --- 管理用 ---
   def new; @column = Column.new; end
