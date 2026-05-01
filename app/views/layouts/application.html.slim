@@ -3,26 +3,36 @@ html lang="ja"
   head
     = render "layouts/head"
 
+    - if @noindex
+      meta name="robots" content="noindex, nofollow"
+
+    / --- canonical（各ドメイン用） ---
+    - canonical_url = request.url
+    link rel="canonical" href=canonical_url
+
   body
     = render "layouts/header"
-    .hero 
-     = render "shared/breadcrumbs" if breadcrumbs.any?
-     
+
+    .hero
+      = render "shared/breadcrumbs" if breadcrumbs.any?
+
     - if params[:sent] == '1'
       .flash-message.alert.alert-success role="alert"
         | 送信完了しました
 
       script
-       |
-        gtag('event', 'conversion', {
-            'send_to': 'AW-10998015402/P0wGCMmaqZQcEKrLofwo',
-            'value': 1.0,
-            'currency': 'JPY'
-        });
-        
+        |
+          gtag('event', 'conversion', {
+              'send_to': 'AW-10998015402/P0wGCMmaqZQcEKrLofwo',
+              'value': 1.0,
+              'currency': 'JPY'
+          });
+
     - flash.each do |type, message|
-     - tag_class = (type == 'notice' ? 'success' : 'danger')
-     div class="flash-message alert alert-#{tag_class}" role="alert"
-       = message
+      - tag_class = (type == 'notice' ? 'success' : 'danger')
+      div class="flash-message alert alert-#{tag_class}" role="alert"
+        = message
+
     = yield
+
     = javascript_include_tag "application", "data-turbolinks-track": "reload"

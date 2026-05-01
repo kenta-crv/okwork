@@ -171,6 +171,10 @@ class ColumnsController < ApplicationController
     add_breadcrumb @column.title if action_name == 'show' && @column
   end
 
+  def set_noindex
+    @noindex = request.host == "column.okey.work"
+  end
+
   def column_params
     params.require(:column).permit(
       :title, :file, :choice, :keyword, :description, :genre, :code, 
