@@ -398,23 +398,6 @@
 
 
 
-    .section#case.cards-moos-section.py-5
-      .container.text-center
-        h2.cards-moos-title.mb-5
-          | 清掃業記事一覧
-        .row.g-4.cards-moos-row
-          - Column.where(genre: "cleaning").order(created_at: :desc).limit(3).each do |column|
-            .col-lg-4.col-md-6
-              = link_to column_path(column), class: "cards-moos-link" do
-                .cards-moos-card
-                  - if column.file.present?
-                    = image_tag column.file.to_s, width:"100%", class: 'column-thumb', alt: column.title
-                  h3.cards-moos-heading
-                    = column.title
-                  p.cards-moos-desc
-                    = truncate(column.description, length: 200)
-        .mt-4
-          = columns_index_link("cleaning", "清掃業の記事一覧を見る")
           
     section.faq-japan-section.py-5
       .container.text-center
