@@ -5,20 +5,12 @@ SitemapGenerator::Sitemap.create do
   add root_path, changefreq: 'hourly', priority: 1.0
 
   # 各ジャンルLP
-  lps = %w[
-    cargo
-    security
-    construction
-    cleaning
-    event
-    logistics
-    recruit
-    app
-    ads
+  pages = %w[
+    daily
   ]
 
-  lps.each do |lp|
-    add "/#{lp}", changefreq: 'monthly', priority: 0.7
+  pages.each do |page|
+    add "/#{page}", changefreq: 'monthly', priority: 0.7
   end
 
   # Column（LP配下）
@@ -26,7 +18,7 @@ SitemapGenerator::Sitemap.create do
     next unless column.code.present?   # code があるものだけ追加
     lp = column.genre # 例: "cleaning"
 
-    add "/#{lp}/columns/#{column.code}",
+    add "/columns/#{column.code}",
         lastmod: column.updated_at,
         priority: 0.5
   end
