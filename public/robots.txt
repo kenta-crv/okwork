@@ -2,3 +2,5 @@
 
 User-agent: *
 Disallow:
+
+Sitemap: https://okey.work/sitemaps/sitemap.xml.gz
