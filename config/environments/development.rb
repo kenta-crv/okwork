@@ -5,8 +5,10 @@ Rails.application.configure do
   # every request. This slows down response time but is perfect for development
   # since you don't have to restart the web server when you make code changes.
   config.cache_classes = false
-# 許可するホスト名の一覧を追加（ポート番号付きも含む）
-  config.hosts << "okey.work"
+
+  # 許可するホスト名の一覧を追加（先頭にドットを付与することで、サブドメインやポート番号付きも許容）
+  config.hosts << ".okey.work"
+
   # Do not eager load code on boot.
   config.eager_load = false
   config.action_mailer.default_url_options = { host: 'localhost:3000' }
