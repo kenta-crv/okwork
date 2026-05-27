@@ -7,7 +7,7 @@ Rails.application.configure do
   config.cache_classes = false
 
   # 許可するホスト名の一覧を追加（先頭にドットを付与することで、サブドメインやポート番号付きも許容）
-  config.hosts << ".okey.work"
+  config.hosts << "okey.work"
 
   # Do not eager load code on boot.
   config.eager_load = false
