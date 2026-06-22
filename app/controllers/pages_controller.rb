@@ -23,6 +23,9 @@ class PagesController < ApplicationController
 
   def initialize_contract
     @contract = Contract.new
+  rescue StandardError => e
+    Rails.logger.error "Failed to initialize contract: #{e.message}"
+    @contract = Contract.new
   end
 
   def set_breadcrumbs

@@ -37,7 +37,7 @@ section.hero-main-section.position-relative(style="background-image: url(#{asset
               h3.hero-main-trial.text-center
                 | ＼まずは無料で見積から／
               = form_with model: @contract, url: contracts_path, local: true, html: { id: "hero-main-top", class: "hero-main-form mt-3 p-4 rounded-3" } do |f|
-                - if @contract.errors.any?
+                - if @contract && @contract.errors.any?
                  .alert.alert-danger
                    ul
                       - @contract.errors.full_messages.each do |message|
@@ -431,4 +431,3 @@ section#inquiry
 
 script[src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"]
 script[src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"]
-script[src="js/script.js"]

@@ -33,7 +33,7 @@ Rails.application.routes.draw do
   #get 'vender',       to: 'pages#vender'
   #get 'recruit',      to: 'pages#recruit'
   #get 'bpo',          to: 'pages#bpo'
-  #get 'pest',         to: 'pages#pest'
+  get 'ads',         to: 'pages#ads'
   get 'daily',          to: 'pages#daily'
 
   # ================================================================
