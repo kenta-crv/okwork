@@ -16,7 +16,7 @@ class PagesController < ApplicationController
   def event; end
   def logistics; end
   def app; end
-  def ads; end
+  def columns; end
   def short; end
 
   private
