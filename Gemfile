@@ -90,7 +90,4 @@ gem 'carrierwave'
 
 gem 'date', '< 3.5'
 gem 'timeout', '< 0.6'
-
-gem 'sitemap_generator'
-
 gem 'nokogiri'
