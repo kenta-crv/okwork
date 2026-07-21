@@ -32,4 +32,13 @@ html lang="ja"
 
     = yield
 
+    footer.site-footer
+      .site-footer__inner
+        nav.site-footer__nav aria-label="フッターナビ"
+          = link_to "トップ", "/"
+          = link_to "日常清掃", "/daily"
+          = link_to "お役立ち記事", "/columns"
+          a href="#inquiry" お問い合わせ
+        p.site-footer__copy © #{Time.current.year} OK Work
+
     = javascript_include_tag "application", "data-turbolinks-track": "reload"

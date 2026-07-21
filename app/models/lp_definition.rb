@@ -5,6 +5,8 @@ module LpDefinition
     'security'     => '警備業',
     'construction' => '建設業',
     'cleaning'     => '清掃業',
+    'daily'        => '日常清掃',
+    'columns'      => 'お役立ち記事',
     'event'        => 'イベント',
     'logistics'    => '物流業',
     'app'          => 'テレアポ代行',

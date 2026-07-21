@@ -3,7 +3,7 @@ module BreadcrumbsHelper
     @breadcrumbs ||= []
   end
 
-  def add_breadcrumb(name, path = nil)
-    breadcrumbs << { name: name, path: path }
+  def add_breadcrumb(label, path = nil)
+    breadcrumbs << { label: label, path: path }
   end
 end

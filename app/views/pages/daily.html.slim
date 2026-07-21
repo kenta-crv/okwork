@@ -565,6 +565,15 @@
                   .col-12
                     = f.submit "まずは無料で見積から", class: "btn hero-main-submit w-100"
     / company overview block
+    section.sp-columns-seo
+      h2.section-title お役立ち記事
+      p.section-lead 日常清掃に関する解説記事
+      ul.sp-columns-seo__list
+        - featured_columns_for(:daily).each do |item|
+          li = link_to item[:title], item[:path]
+      p.sp-columns-seo__more
+        = link_to "記事一覧を見る", "/columns"
+
     .section-company
       .company-card
         h2.section-title 会社概要
