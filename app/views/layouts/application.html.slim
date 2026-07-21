@@ -10,8 +10,8 @@ html lang="ja"
   body
     = render "layouts/header"
 
-    .hero
-      = render "shared/breadcrumbs" if breadcrumbs.any?
+    - if breadcrumbs.any?
+      = render "shared/breadcrumbs"
 
     - if params[:sent] == '1'
       .flash-message.alert.alert-success role="alert"
