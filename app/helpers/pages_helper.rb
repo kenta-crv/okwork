@@ -19,4 +19,12 @@ module PagesHelper
   def featured_columns_for(page_key = :top)
     FEATURED_COLUMNS[page_key.to_sym] || FEATURED_COLUMNS[:top]
   end
+
+  # pages#index のFAQと同一内容（JSON-LD用）
+  def lp_faqs
+    [
+      { q: "対応エリアはどこまでですか？", a: "全国対応可能です。地域や業種により条件が異なりますのでご相談ください。" },
+      { q: "複数事業をまとめて依頼できますか？", a: "はい、複数業種を一括でご依頼いただけます。" }
+    ]
+  end
 end
