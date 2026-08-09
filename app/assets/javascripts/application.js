@@ -345,7 +345,8 @@ const mountDataTargetNav = () => {
     const target = document.getElementById(id);
     if (!target) return;
 
-    const headerH = document.querySelector('.site-header')?.offsetHeight || 0;
+    const header = document.querySelector('.site-header');
+    const headerH = (header && header.offsetHeight) || 0;
     const top = target.getBoundingClientRect().top + window.scrollY - headerH - 10;
 
     window.scrollTo({ top: Math.max(0, Math.round(top)), behavior: 'smooth' });
