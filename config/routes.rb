@@ -35,6 +35,8 @@ Rails.application.routes.draw do
   #get 'bpo',          to: 'pages#bpo'
   get 'columns',         to: 'pages#columns'
   get 'daily',          to: 'pages#daily'
+  get 'daily-cleaning', to: 'pages#daily_cleaning'
+  get 'staffing',       to: 'pages#staffing'
 
   # ================================================================
   # 4. 共通機能

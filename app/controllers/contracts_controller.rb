@@ -11,30 +11,26 @@ class ContractsController < ApplicationController
     end
 
     def create
-  @contract = Contract.new(contract_params)
+      @contract = Contract.new(contract_params)
 
-  # 送信元のURLを特定（j-work.jp/xxx などの元のページ）
-  # 取得できない場合は自サイトのrootへ
-  origin_url = request.referer || root_path
+      origin_url = if @contract.origin.to_s.start_with?('/')
+        @contract.origin
+      else
+        request.referer || root_path
+      end
 
-  if @contract.save
-    # メール送信
-    ContractMailer.received_email(@contract).deliver_now
-    ContractMailer.send_email(@contract).deliver_now
+      if @contract.save
+        ContractMailer.received_email(@contract).deliver_now
+        ContractMailer.send_email(@contract).deliver_now if @contract.email.present?
 
-    # 成功：元のページに「sent=1」を付けて戻す
-    separator = origin_url.include?('?') ? '&' : '?'
-    redirect_to "#{origin_url}#{separator}sent=1"
-  else
-    # 失敗：エラー内容をログに出力
-    p @contract.errors.full_messages
-    
-    # 失敗：元のページに「error=1」を付けて戻す（renderは使わない）
-    # renderを使うとURLが okey.work に変わってしまうため
-    separator = origin_url.include?('?') ? '&' : '?'
-    redirect_to "#{origin_url}#{separator}error=1"
-  end
-end
+        separator = origin_url.include?('?') ? '&' : '?'
+        redirect_to "#{origin_url}#{separator}sent=1"
+      else
+        p @contract.errors.full_messages
+        separator = origin_url.include?('?') ? '&' : '?'
+        redirect_to "#{origin_url}#{separator}error=1"
+      end
+    end
 
     def show
       @contract = Contract.find(params[:id])

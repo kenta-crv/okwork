@@ -1,5 +1,7 @@
+- top_home = controller_name == "pages" && action_name == "index"
+- daily_cleaning_lp = controller_name == "pages" && action_name == "daily_cleaning"
 doctype html
-html lang="ja"
+html lang="ja" class=(top_home ? "jw-top-page" : daily_cleaning_lp ? "dclp-page" : nil)
   head
     = render "layouts/head"
 
@@ -8,10 +10,12 @@ html lang="ja"
     link rel="canonical" href=canonical_url
 
   body
-    = render "layouts/header"
+    - unless top_home || daily_cleaning_lp
+      = render "layouts/header"
 
-    - if breadcrumbs.any?
-      = render "shared/breadcrumbs"
+    - unless top_home || daily_cleaning_lp
+      - if breadcrumbs.any?
+        = render "shared/breadcrumbs"
 
     - if params[:sent] == '1'
       .flash-message.alert.alert-success role="alert"
@@ -30,15 +34,18 @@ html lang="ja"
       div class="flash-message alert alert-#{tag_class}" role="alert"
         = message
 
-    = yield
+    main class=(top_home ? "jw-top-main" : daily_cleaning_lp ? "dclp-main" : nil)
+      = yield
 
-    footer.site-footer
-      .site-footer__inner
-        nav.site-footer__nav aria-label="フッターナビ"
-          = link_to "トップ", "/"
-          = link_to "日常清掃", "/daily"
-          = link_to "お役立ち記事", "/columns"
-          a href="#inquiry" お問い合わせ
-        p.site-footer__copy © #{Time.current.year} OK Work
+    - unless top_home || daily_cleaning_lp
+      footer.site-footer
+        .site-footer__inner
+          nav.site-footer__nav aria-label="フッターナビ"
+            = link_to "トップ", "/"
+            = link_to "人材サービス", "/staffing"
+            = link_to "日常清掃", "/daily"
+            = link_to "お役立ち記事", "/columns"
+            = link_to "お問い合わせ", "/staffing#inquiry"
+          p.site-footer__copy © #{Time.current.year} OK Work
 
     = javascript_include_tag "application", "data-turbolinks-track": "reload"

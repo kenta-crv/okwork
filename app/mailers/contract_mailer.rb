@@ -4,15 +4,17 @@ class ContractMailer < ActionMailer::Base
 
   def received_email(contract)
     @contract = contract
-    # 修正：引数にまとめて設定を書く
-    mail(
-      from: @contract.email,
-      to: "info@j-work.jp", # ここも正しいドメイン付きアドレスに
+    options = {
+      to: "info@j-work.jp",
       subject: '株式会社セールスプロにお問い合わせがありました'
-    )
+    }
+    options[:from] = @contract.email if @contract.email.present?
+    mail(options)
   end
 
   def send_email(contract)
+    return if contract.email.blank?
+
     @contract = contract
     mail(
       to: @contract.email,

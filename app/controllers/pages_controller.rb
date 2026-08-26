@@ -1,5 +1,5 @@
 class PagesController < ApplicationController
-  before_action :set_breadcrumbs, except: [:index]
+  before_action :set_breadcrumbs, except: [:index, :daily_cleaning]
   before_action :initialize_contract
 
   def index; end
@@ -8,6 +8,7 @@ class PagesController < ApplicationController
   def construction; end
   def cleaning; end
   def daily; end
+  def daily_cleaning; end
   def housekeeping; end
   def baby; end
   def babysitter; end
@@ -15,6 +16,7 @@ class PagesController < ApplicationController
   def logistics; end
   def app; end
   def columns; end
+  def staffing; end
   def short; end
 
   private
