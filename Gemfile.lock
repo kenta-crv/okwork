@@ -122,6 +122,7 @@ GEM
       tzinfo
     execjs (2.10.0)
     ffi (1.17.3-arm64-darwin)
+    ffi (1.17.3-x86_64-linux-gnu)
     friendly_id (5.6.0)
       activerecord (>= 4.0.0)
     fugit (1.12.1)
@@ -193,6 +194,8 @@ GEM
       net-protocol
     nio4r (2.7.5)
     nokogiri (1.15.7-arm64-darwin)
+      racc (~> 1.4)
+    nokogiri (1.15.7-x86_64-linux)
       racc (~> 1.4)
     oauth (1.1.3)
       base64 (~> 0.1)
@@ -319,6 +322,7 @@ GEM
       activesupport (>= 6.1)
       sprockets (>= 3.0.0)
     sqlite3 (1.7.3-arm64-darwin)
+    sqlite3 (1.7.3-x86_64-linux)
     ssrf_filter (1.3.0)
     temple (0.10.4)
     thor (1.5.0)
@@ -351,6 +355,7 @@ GEM
 
 PLATFORMS
   arm64-darwin-23
+  x86_64-linux
 
 DEPENDENCIES
   bootsnap (>= 1.1.0)
