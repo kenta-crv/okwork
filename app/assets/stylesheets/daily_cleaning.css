@@ -517,13 +517,6 @@ html.dclp-page .alert-success {
 .clean-partner-lp .cp-section-title em,
 .clean-partner-lp .cp-concerns__answer em { color: var(--cp-blue); font-style: normal; }
 .clean-partner-lp .cp-hero__lead { margin: 22px 0 26px; font-size: 20px; font-weight: 700; letter-spacing: .04em; }
-.clean-partner-lp .cp-hero__actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-  margin: 0 0 22px;
-}
 .clean-partner-lp .cp-hero__points { display: flex; gap: 14px; margin: 0; padding: 0; list-style: none; }
 .clean-partner-lp .cp-round-point { width: 142px; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255,255,255,.9); border: 2px solid var(--cp-sky); border-radius: 50%; text-align: center; line-height: 1.45; }
 .clean-partner-lp .cp-round-point strong,
@@ -1280,7 +1273,6 @@ html.dclp-page .alert-success {
   }
   .clean-partner-lp .cp-hero__title,
   .clean-partner-lp .cp-hero__lead,
-  .clean-partner-lp .cp-hero__actions,
   .clean-partner-lp .cp-hero__points {
     width: min(100% - 32px, 640px);
     margin-left: auto;
@@ -1308,17 +1300,8 @@ html.dclp-page .alert-success {
     margin: 14px auto 16px;
     font-size: 15px;
   }
-  .clean-partner-lp .cp-hero__actions {
-    order: 4;
-    justify-content: stretch;
-    margin: 0 auto 16px;
-  }
-  .clean-partner-lp .cp-hero__actions .cp-contact-button {
-    flex: 1 1 0;
-    min-width: 0;
-  }
   .clean-partner-lp .cp-hero__image {
-    order: 5;
+    order: 4;
     position: relative;
     inset: auto;
     z-index: 0;
@@ -1330,7 +1313,7 @@ html.dclp-page .alert-success {
       var(--cp-hero-image) 42% 28% / cover no-repeat;
   }
   .clean-partner-lp .cp-hero__points {
-    order: 6;
+    order: 5;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
