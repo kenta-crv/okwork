@@ -15,8 +15,8 @@ module LpDefinition
     'staffing'     => '人材サービス'
   }.freeze
 
-  # 日常清掃LPのLINE相談URL。公式アカウントの https://lin.ee/xxxx を入れてください。
-  LINE_CONSULT_URL = ENV['OKWORK_LINE_URL'].presence
+  # LINE相談URL（ENVがあれば優先）
+  LINE_CONSULT_URL = ENV['OKWORK_LINE_URL'].presence || 'https://lin.ee/XJMSNq9'
 
   def self.label(key)
     MAP[key]

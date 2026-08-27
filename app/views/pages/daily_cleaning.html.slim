@@ -1,5 +1,6 @@
 - set_meta_tags title: '日常清掃の人材手配ならOK Work｜清掃スタッフを週1回から'
 - set_meta_tags description: 'オフィス・ビル・マンションの日常清掃人材をお探しの企業様へ。経験者を全国・深夜帯まで迅速に手配。無料見積もりで最短ご案内します。'
+- line_consult_url = LpDefinition.line_consult_url
 
 .clean-partner-lp
   svg.cp-icon-sprite xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"
@@ -153,6 +154,22 @@
             br
             | 全国・必要なタイミングで手配します。
 
+          .cp-hero__actions
+            button.cp-contact-button type="button" data-open-contact="true"
+              span.cp-contact-button__icon aria-hidden="true"
+                svg.cp-ico
+                  use href="#cp-i-mail"
+              span.cp-contact-button__copy
+                strong 無料で相談する
+                small お見積り無料
+            = link_to line_consult_url, class: 'cp-contact-button cp-contact-button--line', target: '_blank', rel: 'noopener noreferrer' do
+              span.cp-contact-button__icon aria-hidden="true"
+                svg.cp-ico.cp-ico--solid
+                  use href="#cp-i-line"
+              span.cp-contact-button__copy
+                strong LINEで相談する
+                small 友だち追加
+
           ul.cp-hero__points
             li.cp-round-point
               span.cp-line-icon aria-hidden="true"
@@ -243,7 +260,7 @@
                 span.cp-feature-card__number 01
               h3 圧倒的な人材規模
               p 毎月アクティブ登録者約4,000名・新規登録約500名。幅広い清掃現場に対応できる人材プールから、安定してスタッフを手配します。
-            = image_tag 'feature-quality.jpg', class: 'cp-feature-card__image', alt: 'クロスで机を清掃するスタッフ', loading: 'lazy'
+            = image_tag 'feature-scale.jpg', class: 'cp-feature-card__image', alt: '外国人スタッフを中心とした多数の清掃人材', loading: 'lazy'
           article.cp-feature-card
             .cp-feature-card__body
               .cp-feature-card__meta
@@ -253,7 +270,7 @@
                 span.cp-feature-card__number 02
               h3 スピード手配
               p 必要なタイミングに、経験者を迅速に手配します。急な欠員補充や増員にも対応できます。
-            = image_tag 'feature-team.jpg', class: 'cp-feature-card__image', alt: '清掃スタッフチーム', loading: 'lazy'
+            = image_tag 'feature-speed.jpg', class: 'cp-feature-card__image', alt: 'スピーディーに人材手配するコーディネーター', loading: 'lazy'
           article.cp-feature-card
             .cp-feature-card__body
               .cp-feature-card__meta
@@ -263,7 +280,7 @@
                 span.cp-feature-card__number 03
               h3 全国対応・深夜にも強い
               p 全国の現場に対応。早朝・深夜の清掃も、速やかに人材を手配できます。
-            = image_tag 'feature-control.jpg', class: 'cp-feature-card__image', alt: '品質チェックシート', loading: 'lazy'
+            = image_tag 'feature-nationwide.jpg', class: 'cp-feature-card__image', alt: '夜のオフィスビルで清掃するスタッフ', loading: 'lazy'
 
         p.cp-features__note
           | 当社の役割は人材の手配・提供です。現場での作業指示・管理はお客様にお願いしています。
@@ -283,10 +300,16 @@
             select#cp-pref-select.cp-price__pref-select
               option value="" selected="selected" 全国（最安値）
           p.cp-price__base
-            | ベースは最安値で
-            strong#cp-price-base-amount —
-            | 円〜
+            span.cp-price__campaign キャンペーン価格
+            span.cp-price__base-copy
+              | ベースは最安値で
+              s#cp-price-base-list —
+              strong#cp-price-base-amount —
+              | 円〜
             small#cp-price-base-note （全国）
+        .cp-price__nudge
+          p#cp-price-nudge-text 全国の最安目安です。正式なお見積りは無料です。
+          button.cp-outline-button.cp-outline-button--filled type="button" data-open-contact="true" この条件で見積もりする
         .cp-price__grid#cp-price-grid
           article.cp-price-card data-plan="light" data-plan-extra="1000"
             header.cp-price-card__header
@@ -295,7 +318,8 @@
             .cp-price-card__body
               span.cp-price-card__frequency 1日3時間・週2回から
               p.cp-price-card__amount
-                strong data-price-amount="true" —
+                s data-price-list="true" —
+                strong.cp-price-card__sale data-price-amount="true" —
                 span 円〜／時間
               small data-price-tax="true" —
               ul.cp-price-card__specs
@@ -327,7 +351,8 @@
             .cp-price-card__body
               span.cp-price-card__frequency 1日4時間・週3回から
               p.cp-price-card__amount
-                strong data-price-amount="true" —
+                s data-price-list="true" —
+                strong.cp-price-card__sale data-price-amount="true" —
                 span 円〜／時間
               small data-price-tax="true" —
               ul.cp-price-card__specs
@@ -358,7 +383,8 @@
             .cp-price-card__body
               span.cp-price-card__frequency 1日7時間・週5回から
               p.cp-price-card__amount
-                strong data-price-amount="true" —
+                s data-price-list="true" —
+                strong.cp-price-card__sale data-price-amount="true" —
                 span 円〜／時間
               small data-price-tax="true" —
               ul.cp-price-card__specs
@@ -706,7 +732,6 @@
                   br
                   | 清掃業務請負
 
-    - line_consult_url = LpDefinition.line_consult_url
     dialog#contact-modal.cp-modal
       .cp-modal__panel
         button.cp-modal__close type="button" data-close-contact="true" aria-label="閉じる" ×
@@ -761,7 +786,7 @@
         = image_tag 'cta-staff.png', class: 'cp-cta__staff', alt: '案内する清掃スタッフ'
         .cp-cta__content
           h2 まずはお気軽に#{content_tag(:em, 'ご相談ください！')}
-          p ヒアリング・お見積りは無料です。必要な清掃人材をご提案いたします。
+          p ヒアリング・お見積り無料。必要な人材をご提案します。
           .cp-cta__actions
             button.cp-contact-button.cp-contact-button--large type="button" data-open-contact="true"
               span.cp-contact-button__icon aria-hidden="true"
@@ -877,9 +902,12 @@
       var COUNT_KEY = 'cp_pref_switch_count';
 
       var select = document.getElementById('cp-pref-select');
+      var baseList = document.getElementById('cp-price-base-list');
       var baseAmount = document.getElementById('cp-price-base-amount');
       var baseNote = document.getElementById('cp-price-base-note');
+      var nudgeText = document.getElementById('cp-price-nudge-text');
       var cards = document.querySelectorAll('#cp-price-grid [data-plan]');
+      var PRICE_MARKUP = 100;
       if (!select || !baseAmount || !cards.length) return;
 
       // 例: 1014円 → 1200円（200円単位で端数切り上げ）
@@ -918,14 +946,23 @@
 
       function render(wage, label) {
         var cheapest = calcHourly(wage, 'fulltime');
+        if (baseList) baseList.textContent = formatYen(cheapest + PRICE_MARKUP);
         baseAmount.textContent = formatYen(cheapest);
         baseNote.textContent = '（' + label + '）';
+        if (nudgeText) {
+          nudgeText.textContent = label === '全国'
+            ? '全国の最安目安です。正式なお見積りは無料です。'
+            : label + 'の目安です。正式なお見積りは無料です。';
+        }
         cards.forEach(function (card) {
           var plan = card.getAttribute('data-plan');
           var price = calcHourly(wage, plan);
+          var listPrice = price + PRICE_MARKUP;
           var tax = Math.round(price * 1.1);
+          var listEl = card.querySelector('[data-price-list]');
           var amountEl = card.querySelector('[data-price-amount]');
           var taxEl = card.querySelector('[data-price-tax]');
+          if (listEl) listEl.textContent = formatYen(listPrice);
           if (amountEl) amountEl.textContent = formatYen(price);
           if (taxEl) taxEl.textContent = '（税込 ' + formatYen(tax) + '円〜）';
         });

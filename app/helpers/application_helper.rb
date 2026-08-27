@@ -42,13 +42,13 @@ module ApplicationHelper
       "@context" => "https://schema.org",
       "@type" => "Organization",
       "name" => "OK Work",
-      "legalName" => "株式会社セールスプロ",
+      "legalName" => "株式会社J Work",
       "url" => "https://okey.work/",
       "logo" => "https://okey.work#{image_path('favicon.ico')}",
       "description" => "清掃・軽貨物・人材など、現場の課題を人材力で解決する OK Work。",
       "address" => {
         "@type" => "PostalAddress",
-        "streetAddress" => "芝5-27-3 MBC・Aー9",
+        "streetAddress" => "浜松町２丁目２番１５号２Ｆ",
         "addressLocality" => "港区",
         "addressRegion" => "東京都",
         "addressCountry" => "JP"
@@ -65,9 +65,25 @@ module ApplicationHelper
       "inLanguage" => "ja",
       "publisher" => {
         "@type" => "Organization",
-        "name" => "株式会社セールスプロ"
+        "name" => "株式会社J Work"
       }
     }.to_json
+  end
+
+  def yahoo_ads_conversion_tags
+    <<~HTML.html_safe
+      <script>
+        ytag({
+          "type":"yjad_conversion",
+          "config":{
+            "yahoo_ydn_conv_io": "sExy6wrWFcaJvWNk_H95ZA..",
+            "yahoo_ydn_conv_label": "GOLSXVES2XS5YJKYY41372463",
+            "yahoo_ydn_conv_transaction_id": "",
+            "yahoo_ydn_conv_value": "0"
+          }
+        });
+      </script>
+    HTML
   end
 
   def faq_page_json_ld(items)

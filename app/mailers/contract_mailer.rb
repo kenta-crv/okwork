@@ -6,7 +6,7 @@ class ContractMailer < ActionMailer::Base
     @contract = contract
     options = {
       to: "info@j-work.jp",
-      subject: '株式会社セールスプロにお問い合わせがありました'
+      subject: '株式会社J Workにお問い合わせがありました'
     }
     options[:from] = @contract.email if @contract.email.present?
     mail(options)
