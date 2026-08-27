@@ -119,15 +119,8 @@
 
   header.cp-header
     .cp-container.cp-header__inner
-      = link_to '#top', class: 'cp-brand', aria: { label: 'Clean Partner トップへ' } do
-        span.cp-brand__mark aria-hidden="true"
-          svg.cp-ico.cp-ico--solid.cp-brand__spark.cp-brand__spark--large
-            use href="#cp-i-spark"
-          svg.cp-ico.cp-ico--solid.cp-brand__spark.cp-brand__spark--small
-            use href="#cp-i-spark"
-        span.cp-brand__copy
-          strong.cp-brand__name Clean Partner
-          small.cp-brand__ja クリーンパートナー
+      = link_to '#top', class: 'cp-brand', aria: { label: 'OK Work トップへ' } do
+        = image_tag 'logo2.png', alt: 'OK Work', class: 'cp-brand__logo', width: '150', height: '54'
 
       nav.cp-nav aria-label="メインナビゲーション"
         = link_to 'お悩み', '#service', class: 'cp-nav__link'
@@ -136,7 +129,7 @@
         = link_to 'ご利用の流れ', '#flow', class: 'cp-nav__link'
         = link_to 'よくあるご質問', '#faq', class: 'cp-nav__link'
 
-      = link_to '#contact', class: 'cp-contact-button cp-contact-button--header' do
+      button.cp-contact-button.cp-contact-button--header type="button" data-open-contact="true"
         span.cp-contact-button__icon aria-hidden="true"
           svg.cp-ico
             use href="#cp-i-mail"
@@ -146,7 +139,7 @@
 
   main
     section#top.cp-hero
-      .cp-hero__image aria-hidden="true"
+      .cp-hero__image aria-hidden="true" style="--cp-hero-image: url(#{asset_path('hero-cleaner.jpg')})"
       .cp-container.cp-hero__inner
         .cp-hero__content
           p.cp-hero__eyebrow 現場の人材力で、キレイを支える。
@@ -250,7 +243,7 @@
                 span.cp-feature-card__number 01
               h3 圧倒的な人材規模
               p 毎月アクティブ登録者約4,000名・新規登録約500名。幅広い清掃現場に対応できる人材プールから、安定してスタッフを手配します。
-            = image_tag 'feature-quality.jpg', class: 'cp-feature-card__image', alt: 'クロスで机を清掃するスタッフ'
+            = image_tag 'feature-quality.jpg', class: 'cp-feature-card__image', alt: 'クロスで机を清掃するスタッフ', loading: 'lazy'
           article.cp-feature-card
             .cp-feature-card__body
               .cp-feature-card__meta
@@ -260,7 +253,7 @@
                 span.cp-feature-card__number 02
               h3 スピード手配
               p 必要なタイミングに、経験者を迅速に手配します。急な欠員補充や増員にも対応できます。
-            = image_tag 'feature-team.jpg', class: 'cp-feature-card__image', alt: '清掃スタッフチーム'
+            = image_tag 'feature-team.jpg', class: 'cp-feature-card__image', alt: '清掃スタッフチーム', loading: 'lazy'
           article.cp-feature-card
             .cp-feature-card__body
               .cp-feature-card__meta
@@ -270,7 +263,7 @@
                 span.cp-feature-card__number 03
               h3 全国対応・深夜にも強い
               p 全国の現場に対応。早朝・深夜の清掃も、速やかに人材を手配できます。
-            = image_tag 'feature-control.jpg', class: 'cp-feature-card__image', alt: '品質チェックシート'
+            = image_tag 'feature-control.jpg', class: 'cp-feature-card__image', alt: '品質チェックシート', loading: 'lazy'
 
         p.cp-features__note
           | 当社の役割は人材の手配・提供です。現場での作業指示・管理はお客様にお願いしています。
@@ -284,105 +277,117 @@
         p.cp-heading-lead ご予算や稼働頻度に合わせて、最適な人員手配プランをお選びいただけます。
 
         h3.cp-subheading 選べる3つの料金プラン
-        .cp-price__grid
-          article.cp-price-card
+        .cp-price__controls
+          label.cp-price__pref-label for="cp-pref-select"
+            span 都道府県を選択
+            select#cp-pref-select.cp-price__pref-select
+              option value="" selected="selected" 全国（最安値）
+          p.cp-price__base
+            | ベースは最安値で
+            strong#cp-price-base-amount —
+            | 円〜
+            small#cp-price-base-note （全国）
+        .cp-price__grid#cp-price-grid
+          article.cp-price-card data-plan="light" data-plan-extra="1000"
             header.cp-price-card__header
-              h4 ライトプラン
-              p まずは少人数から人材を手配したい方へ
+              h4 お手軽プラン
+              p まずは短時間から人材を手配したい方へ
             .cp-price-card__body
-              span.cp-price-card__frequency 月2回
+              span.cp-price-card__frequency 1日3時間・週2回から
               p.cp-price-card__amount
-                strong 22,000
-                span 円〜／月
-              small （税込 24,200円〜）
+                strong data-price-amount="true" —
+                span 円〜／時間
+              small data-price-tax="true" —
               ul.cp-price-card__specs
                 li
                   span.cp-spec-ico aria-hidden="true"
                     svg.cp-ico
                       use href="#cp-i-clock"
-                  b 作業時間
-                  span 1回あたり 約2時間
+                  b 稼働目安
+                  span 1日3時間・週2回から
                 li
                   span.cp-spec-ico aria-hidden="true"
                     svg.cp-ico
                       use href="#cp-i-person"
                   b 作業スタッフ
-                  span 1名体制
+                  span ご希望人数で手配
                 li
                   span.cp-spec-ico aria-hidden="true"
                     svg.cp-ico
                       use href="#cp-i-building"
                   b おすすめの場所
                   span 小規模オフィス・店舗など
-              = link_to 'プラン内容を詳しく見る', '#contact', class: 'cp-outline-button'
+              button.cp-outline-button type="button" data-open-contact="true" プラン内容を詳しく見る
 
-          article.cp-price-card.cp-price-card--featured
+          article.cp-price-card.cp-price-card--featured data-plan="standard" data-plan-extra="900"
             span.cp-price-card__badge 人気No.1
             header.cp-price-card__header
               h4 スタンダードプラン
               p 定期的に清掃人材を確保したい方へ
             .cp-price-card__body
-              span.cp-price-card__frequency 月4回
+              span.cp-price-card__frequency 1日4時間・週3回から
               p.cp-price-card__amount
-                strong 38,000
-                span 円〜／月
-              small （税込 41,800円〜）
+                strong data-price-amount="true" —
+                span 円〜／時間
+              small data-price-tax="true" —
               ul.cp-price-card__specs
                 li
                   span.cp-spec-ico aria-hidden="true"
                     svg.cp-ico
                       use href="#cp-i-clock"
-                  b 作業時間
-                  span 1回あたり 約2.5〜3時間
+                  b 稼働目安
+                  span 1日4時間・週3回から
                 li
                   span.cp-spec-ico aria-hidden="true"
                     svg.cp-ico
                       use href="#cp-i-people"
                   b 作業スタッフ
-                  span 1〜2名体制
+                  span ご希望人数で手配
                 li
                   span.cp-spec-ico aria-hidden="true"
                     svg.cp-ico
                       use href="#cp-i-building"
                   b おすすめの場所
                   span オフィス・店舗・施設など
-              = link_to 'プラン内容を詳しく見る', '#contact', class: 'cp-outline-button cp-outline-button--filled'
+              button.cp-outline-button.cp-outline-button--filled type="button" data-open-contact="true" プラン内容を詳しく見る
 
-          article.cp-price-card
+          article.cp-price-card data-plan="fulltime" data-plan-extra="800"
             header.cp-price-card__header
-              h4 プレミアムプラン
-              p 毎日の清掃人員を安定させたい方へ
+              h4 フルタイムプラン
+              p 企業に完全従事し、日々固定の人材をご希望人数で提供
             .cp-price-card__body
-              span.cp-price-card__frequency 毎日清掃
+              span.cp-price-card__frequency 1日7時間・週5回から
               p.cp-price-card__amount
-                strong 68,000
-                span 円〜／月
-              small （税込 74,800円〜）
+                strong data-price-amount="true" —
+                span 円〜／時間
+              small data-price-tax="true" —
               ul.cp-price-card__specs
                 li
                   span.cp-spec-ico aria-hidden="true"
                     svg.cp-ico
                       use href="#cp-i-clock"
-                  b 作業時間
-                  span 1回あたり 約2〜3時間
+                  b 稼働目安
+                  span 1日7時間・週5回から
                 li
                   span.cp-spec-ico aria-hidden="true"
                     svg.cp-ico
                       use href="#cp-i-people"
                   b 作業スタッフ
-                  span 2名体制
+                  span 固定人材・ご希望人数
                 li
                   span.cp-spec-ico aria-hidden="true"
                     svg.cp-ico
                       use href="#cp-i-building"
                   b おすすめの場所
                   span 大規模オフィス・商業施設など
-              = link_to 'プラン内容を詳しく見る', '#contact', class: 'cp-outline-button'
+              button.cp-outline-button type="button" data-open-contact="true" プラン内容を詳しく見る
 
         p.cp-price__note
-          | ※上記は一例です。建物の広さ・稼働人数・勤務時間により料金は変動いたします。まずはお気軽にご相談ください。
+          | ※交通費実費は別途発生します。
           br
-          | ※清掃用具はお客様にてご用意ください。
+          | ※時間や曜日指定により料金が変動する場合があります。
+          br
+          | ※上記はあくまで一例です。正式なお見積りはお問い合わせください。
 
         /h3.cp-subheading オプションサービス
         /.cp-options
@@ -426,6 +431,88 @@
               b トイレ徹底清掃
               strong 3,000円〜
               small ／箇所（税込 3,300円〜）
+
+    section#compare.cp-compare-section.cp-section
+      .cp-container
+        p.cp-section-kicker 公開情報をもとにした目安
+        h2.cp-heading
+          | 他社との
+          em 料金比較
+        p.cp-heading-lead
+          | 1時間あたりの料金目安で比較しています。
+          br
+          | OK Workは時間単価を抑えつつ、経験者を安定手配します。
+
+        .cp-compare
+          table.cp-compare__table
+            thead
+              tr
+                th サービス
+                th 料金の目安
+                th 作業時間
+                th 時間単価
+            tbody
+              tr.cp-compare__row.cp-compare__row--ours
+                th scope="row"
+                  span.cp-compare__name OK Work
+                  span.cp-compare__badge 最安
+                td
+                  | 月18,000円〜
+                  br
+                  small 月2回／2時間
+                td 2時間
+                td
+                  strong.cp-compare__rate 約2,250円
+              tr.cp-compare__row
+                th scope="row"
+                  span.cp-compare__name A社
+                td
+                  | 月10,000円〜
+                  br
+                  small 月2回／2時間
+                td 2時間
+                td 約2,500円
+              tr.cp-compare__row
+                th scope="row"
+                  span.cp-compare__name B社
+                td
+                  | 2,500円〜／時間
+                  br
+                  small 直接記載
+                td 3時間以上
+                td 2,500円〜
+              tr.cp-compare__row
+                th scope="row"
+                  span.cp-compare__name C社
+                td
+                  | 月100,000円〜
+                  br
+                  small 週3回（月約13回）／3時間
+                td 3時間
+                td 約2,564円
+              tr.cp-compare__row
+                th scope="row"
+                  span.cp-compare__name D社
+                td
+                  | 月14,000円〜
+                  br
+                  small 週1回（月4回）／1時間
+                td 1時間
+                td 約3,500円
+              tr.cp-compare__row
+                th scope="row"
+                  span.cp-compare__name E社
+                td
+                  | 3,500円〜／時間
+                  br
+                  small ＋基本料金あり
+                td 2時間
+                td 3,500円〜
+
+        p.cp-compare__note
+          | ※他社料金は公開情報からの換算例です。条件・エリア・オプションにより異なります。
+          br
+          | ※自社料金は仮の目安です。正式なお見積りはお問い合わせください。社名はアルファベット表記としています。
 
     section#reviews.cp-reviews.cp-section
       .cp-container
@@ -497,7 +584,7 @@
             .cp-flow-card__copy
               h3 お問い合わせ・ご相談
               p LINEまたはお問い合わせフォームより、お気軽にご相談ください。必要な人数・勤務時間・清掃経験の希望をお伺いします。
-            = image_tag 'flow-contact.jpg', class: 'cp-flow-card__image', alt: '電話で相談を受ける担当者'
+            = image_tag 'flow-contact.jpg', class: 'cp-flow-card__image', alt: '電話で相談を受ける担当者', loading: 'lazy'
           li.cp-flow-card
             span.cp-flow-card__number 02
             .cp-flow-card__icon aria-hidden="true"
@@ -506,7 +593,7 @@
             .cp-flow-card__copy
               h3 お見積り・ご提案
               p ヒアリング内容をもとに、最適な人員体制とお見積りをご提案します。内容にご納得いただけましたら、ご契約となります。
-            = image_tag 'flow-estimate.jpg', class: 'cp-flow-card__image', alt: '清掃サービスの見積書'
+            = image_tag 'flow-estimate.jpg', class: 'cp-flow-card__image', alt: '清掃サービスの見積書', loading: 'lazy'
           li.cp-flow-card
             span.cp-flow-card__number 03
             .cp-flow-card__icon aria-hidden="true"
@@ -515,7 +602,7 @@
             .cp-flow-card__copy
               h3 人材手配・稼働開始
               p 経験者の清掃スタッフを手配し、現場での稼働を開始します。作業内容のご指示は現場にてお願いしています。人員調整や追加手配もご相談いただけます。
-            = image_tag 'flow-cleaning.jpg', class: 'cp-flow-card__image', alt: 'オフィスを清掃するスタッフ'
+            = image_tag 'flow-cleaning.jpg', class: 'cp-flow-card__image', alt: 'オフィスを清掃するスタッフ', loading: 'lazy'
 
     section#faq.cp-faq.cp-section
       .cp-container
@@ -598,7 +685,7 @@
                 dd 株式会社J Work
               div
                 dt 設立
-                dd 2023年8月18日
+                dd 2023年8月22日
               div
                 dt 代表者
                 dd 代表取締役 奥山　健太
@@ -607,7 +694,7 @@
                 dd 5,000,000円
               div
                 dt 所在地
-                dd 東京都港区芝5-27-3 MBC・Aー9
+                dd 東京都港区浜松町２丁目２番１５号２Ｆ
               div
                 dt 事業内容
                 dd
@@ -620,6 +707,55 @@
                   | 清掃業務請負
 
     - line_consult_url = LpDefinition.line_consult_url
+    dialog#contact-modal.cp-modal
+      .cp-modal__panel
+        button.cp-modal__close type="button" data-close-contact="true" aria-label="閉じる" ×
+        p.cp-modal__kicker CONTACT
+        h2.cp-modal__title 無料お問い合わせ
+        p.cp-modal__lead ヒアリング・お見積りは無料です。フォーム送信またはLINEからご相談ください。
+        - if params[:error] == '1'
+          p.cp-form-error 送信に失敗しました。入力内容をご確認のうえ、再度お試しください。
+        = form_with model: @contract, url: contracts_path, local: true, html: { class: 'cp-form', id: 'daily-cleaning-contact' } do |f|
+          = f.hidden_field :origin, value: request.path
+          .cp-form__grid
+            .cp-form__field
+              label.cp-form__label
+                | 会社名
+                span.cp-form__badge.cp-form__badge--required 必須
+              = f.text_field :company, class: 'cp-form__input', placeholder: '株式会社〇〇〇〇', required: true
+            .cp-form__field
+              label.cp-form__label
+                | ご担当者様名
+                span.cp-form__badge.cp-form__badge--required 必須
+              = f.text_field :name, class: 'cp-form__input', placeholder: '山田太郎', required: true
+            .cp-form__field
+              label.cp-form__label
+                | 電話番号
+                span.cp-form__badge.cp-form__badge--required 必須
+              = f.telephone_field :tel, class: 'cp-form__input', placeholder: '050-1234-5678', required: true
+            .cp-form__field
+              label.cp-form__label
+                | メールアドレス
+                span.cp-form__badge.cp-form__badge--required 必須
+              = f.email_field :email, class: 'cp-form__input', placeholder: 'test@example.com', required: true
+            .cp-form__field
+              label.cp-form__label
+                | 住所
+                span.cp-form__badge.cp-form__badge--required 必須
+              = f.text_field :address, class: 'cp-form__input', placeholder: '東京都港区浜松町２丁目２番１５号２Ｆ', required: true
+            .cp-form__field
+              label.cp-form__label
+                | URL
+                span.cp-form__badge.cp-form__badge--required 必須
+              = f.url_field :url, class: 'cp-form__input', placeholder: 'https://example.com/', required: true
+            .cp-form__field.cp-form__field--full
+              label.cp-form__label
+                | 備考・要望
+                span.cp-form__badge.cp-form__badge--optional 任意
+              = f.text_area :message, class: 'cp-form__input cp-form__input--area', placeholder: 'ご希望の人数・頻度・エリアなど'
+          .cp-form__actions
+            = f.submit '無料で相談する', class: 'cp-form__submit'
+
     section#contact.cp-cta
       .cp-container.cp-cta__inner
         = image_tag 'cta-staff.png', class: 'cp-cta__staff', alt: '案内する清掃スタッフ'
@@ -627,14 +763,14 @@
           h2 まずはお気軽に#{content_tag(:em, 'ご相談ください！')}
           p ヒアリング・お見積りは無料です。必要な清掃人材をご提案いたします。
           .cp-cta__actions
-            = link_to '#contact-form', class: 'cp-contact-button cp-contact-button--large' do
+            button.cp-contact-button.cp-contact-button--large type="button" data-open-contact="true"
               span.cp-contact-button__icon aria-hidden="true"
                 svg.cp-ico
                   use href="#cp-i-mail"
               span.cp-contact-button__copy
                 strong 無料で相談する
                 small お問い合わせはこちら
-            = link_to (line_consult_url.presence || '#contact-form'), class: 'cp-contact-button cp-contact-button--large cp-contact-button--line', target: (line_consult_url.present? ? '_blank' : nil), rel: (line_consult_url.present? ? 'noopener noreferrer' : nil) do
+            = link_to line_consult_url, class: 'cp-contact-button cp-contact-button--large cp-contact-button--line', target: '_blank', rel: 'noopener noreferrer' do
               span.cp-contact-button__icon aria-hidden="true"
                 svg.cp-ico.cp-ico--solid
                   use href="#cp-i-line"
@@ -661,5 +797,155 @@
             b 最短即日で
             strong ご連絡
 
+  javascript:
+    (function () {
+      var modal = document.getElementById('contact-modal');
+      if (!modal) return;
+      function openModal(e) {
+        if (e) e.preventDefault();
+        if (typeof modal.showModal === 'function') modal.showModal();
+        else modal.setAttribute('open', '');
+      }
+      function closeModal() {
+        if (typeof modal.close === 'function') modal.close();
+        else modal.removeAttribute('open');
+      }
+      document.querySelectorAll('[data-open-contact]').forEach(function (el) {
+        el.addEventListener('click', openModal);
+      });
+      var closeBtn = modal.querySelector('[data-close-contact]');
+      if (closeBtn) closeBtn.addEventListener('click', closeModal);
+      modal.addEventListener('click', function (e) {
+        if (e.target === modal) closeModal();
+      });
+      if (#{(params[:error].to_s == '1').to_json}) openModal();
+    })();
 
+    (function () {
+      // 令和7年度 地域別最低賃金（厚生労働省答申ベース）
+      var PREF_WAGES = [
+        { name: '北海道', wage: 1075 },
+        { name: '青森県', wage: 1029 },
+        { name: '岩手県', wage: 1031 },
+        { name: '宮城県', wage: 1038 },
+        { name: '秋田県', wage: 1031 },
+        { name: '山形県', wage: 1032 },
+        { name: '福島県', wage: 1033 },
+        { name: '茨城県', wage: 1074 },
+        { name: '栃木県', wage: 1068 },
+        { name: '群馬県', wage: 1063 },
+        { name: '埼玉県', wage: 1141 },
+        { name: '千葉県', wage: 1140 },
+        { name: '東京都', wage: 1226 },
+        { name: '神奈川県', wage: 1225 },
+        { name: '新潟県', wage: 1050 },
+        { name: '富山県', wage: 1062 },
+        { name: '石川県', wage: 1054 },
+        { name: '福井県', wage: 1053 },
+        { name: '山梨県', wage: 1052 },
+        { name: '長野県', wage: 1061 },
+        { name: '岐阜県', wage: 1065 },
+        { name: '静岡県', wage: 1097 },
+        { name: '愛知県', wage: 1140 },
+        { name: '三重県', wage: 1087 },
+        { name: '滋賀県', wage: 1080 },
+        { name: '京都府', wage: 1122 },
+        { name: '大阪府', wage: 1177 },
+        { name: '兵庫県', wage: 1116 },
+        { name: '奈良県', wage: 1051 },
+        { name: '和歌山県', wage: 1045 },
+        { name: '鳥取県', wage: 1030 },
+        { name: '島根県', wage: 1033 },
+        { name: '岡山県', wage: 1047 },
+        { name: '広島県', wage: 1085 },
+        { name: '山口県', wage: 1043 },
+        { name: '徳島県', wage: 1046 },
+        { name: '香川県', wage: 1036 },
+        { name: '愛媛県', wage: 1033 },
+        { name: '高知県', wage: 1023 },
+        { name: '福岡県', wage: 1057 },
+        { name: '佐賀県', wage: 1030 },
+        { name: '長崎県', wage: 1031 },
+        { name: '熊本県', wage: 1034 },
+        { name: '大分県', wage: 1035 },
+        { name: '宮崎県', wage: 1023 },
+        { name: '鹿児島県', wage: 1026 },
+        { name: '沖縄県', wage: 1023 }
+      ];
+      var COMMON_ADD = 200;
+      var PLAN_EXTRAS = { light: 1000, standard: 900, fulltime: 800 };
+      var COUNT_KEY = 'cp_pref_switch_count';
 
+      var select = document.getElementById('cp-pref-select');
+      var baseAmount = document.getElementById('cp-price-base-amount');
+      var baseNote = document.getElementById('cp-price-base-note');
+      var cards = document.querySelectorAll('#cp-price-grid [data-plan]');
+      if (!select || !baseAmount || !cards.length) return;
+
+      // 例: 1014円 → 1200円（200円単位で端数切り上げ）
+      function roundUpWage(wage) {
+        return Math.ceil(wage / 200) * 200;
+      }
+
+      function formatYen(n) {
+        return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      }
+
+      function calcHourly(wage, plan) {
+        return roundUpWage(wage) + COMMON_ADD + PLAN_EXTRAS[plan];
+      }
+
+      function minWage() {
+        var min = PREF_WAGES[0].wage;
+        for (var i = 1; i < PREF_WAGES.length; i++) {
+          if (PREF_WAGES[i].wage < min) min = PREF_WAGES[i].wage;
+        }
+        return min;
+      }
+
+      function trackPrefSwitch(prefName) {
+        var count = parseInt(localStorage.getItem(COUNT_KEY) || '0', 10) || 0;
+        count += 1;
+        localStorage.setItem(COUNT_KEY, String(count));
+        if (typeof gtag === 'function') {
+          gtag('event', 'prefecture_price_switch', {
+            event_category: 'daily_cleaning',
+            event_label: prefName || '全国（最安値）',
+            value: count
+          });
+        }
+      }
+
+      function render(wage, label) {
+        var cheapest = calcHourly(wage, 'fulltime');
+        baseAmount.textContent = formatYen(cheapest);
+        baseNote.textContent = '（' + label + '）';
+        cards.forEach(function (card) {
+          var plan = card.getAttribute('data-plan');
+          var price = calcHourly(wage, plan);
+          var tax = Math.round(price * 1.1);
+          var amountEl = card.querySelector('[data-price-amount]');
+          var taxEl = card.querySelector('[data-price-tax]');
+          if (amountEl) amountEl.textContent = formatYen(price);
+          if (taxEl) taxEl.textContent = '（税込 ' + formatYen(tax) + '円〜）';
+        });
+      }
+
+      PREF_WAGES.forEach(function (pref) {
+        var opt = document.createElement('option');
+        opt.value = String(pref.wage);
+        opt.textContent = pref.name;
+        opt.setAttribute('data-name', pref.name);
+        select.appendChild(opt);
+      });
+
+      render(minWage(), '全国');
+
+      select.addEventListener('change', function () {
+        var selected = select.options[select.selectedIndex];
+        var wage = select.value ? parseInt(select.value, 10) : minWage();
+        var label = select.value ? selected.textContent : '全国';
+        render(wage, label);
+        trackPrefSwitch(select.value ? selected.textContent : '');
+      });
+    })();
