@@ -6,18 +6,17 @@ class ApplicationController < ActionController::Base
   before_action :init_breadcrumbs
   helper_method :breadcrumbs
 
-
-    def current_client
+  def current_client
     return @current_client if defined?(@current_client)
-    return OpenStruct.new(expired?: false) if Rails.env.development?
-    super
+    @current_client = nil
   end
 
   def check_trial_expiration
-    return if Rails.env.development?  # 開発環境ではスキップ
-    if current_client.expired?
-      redirect_to expired_path
-    end
+    return if Rails.env.development?
+    client = current_client
+    return unless client.present? && client.respond_to?(:expired?)
+    redirect_to expired_path if client.expired?
+    client.check_and_upgrade_expired_trial if client.respond_to?(:check_and_upgrade_expired_trial)
   end
 
   def breadcrumbs
@@ -29,29 +28,25 @@ class ApplicationController < ActionController::Base
   end
 
   protected
-def after_sign_in_path_for(resource)
-  if resource.is_a?(Admin)
-    # Admin用のダッシュボードがないようなので、一旦 root か columns 一覧へ
-    return root_path
-  end
 
-  if resource.is_a?(Client)
-    # routesにある「clients GET /clients(.:format)」を参照
-    return clients_path
-  end
+  def after_sign_in_path_for(resource)
+    if resource.is_a?(Admin)
+      # Admin用のダッシュボードがないようなので、一旦 root か columns 一覧へ
+      return root_path
+    end
 
-  super
-end
+    if resource.is_a?(Client)
+      # routesにある「clients GET /clients(.:format)」を参照
+      return clients_path
+    end
+
+    super
+  end
 
   def configure_permitted_parameters
     added_attrs = [:first_name, :last_name, :email, :password, :password_confirmation, :remember_me]
     devise_parameter_sanitizer.permit(:sign_up, keys: added_attrs)
     devise_parameter_sanitizer.permit(:account_update, keys: added_attrs)
-  end
-
-  def check_trial_expiration
-    return unless current_client.present?
-    current_client.check_and_upgrade_expired_trial
   end
 
   private
