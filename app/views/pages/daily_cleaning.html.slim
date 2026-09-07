@@ -808,6 +808,43 @@
 
   javascript:
     (function () {
+      var header = document.querySelector('.clean-partner-lp .cp-header');
+      if (!header) return;
+      var ticking = false;
+      function shouldShow() {
+        return window.scrollY > 80;
+      }
+      function update() {
+        header.classList.toggle('is-visible', shouldShow());
+      }
+      function onScroll() {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(function () {
+          ticking = false;
+          update();
+        });
+      }
+      update();
+      window.addEventListener('scroll', onScroll, { passive: true });
+      header.addEventListener('click', function (e) {
+        var a = e.target.closest('a[href^="#"]');
+        if (!a) return;
+        var id = (a.getAttribute('href') || '').slice(1);
+        if (!id) return;
+        var target = document.getElementById(id);
+        if (!target) return;
+        e.preventDefault();
+        if (history.replaceState) history.replaceState(null, '', '#' + id);
+        if (id === 'top') {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          target.scrollIntoView({ behavior: 'smooth' });
+        }
+      });
+    })();
+
+    (function () {
       var modal = document.getElementById('contact-modal');
       if (!modal) return;
       function openModal(e) {

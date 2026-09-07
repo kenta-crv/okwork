@@ -5,6 +5,7 @@
 /* レイアウト用（html.dclp-page / .dclp-main）。旧 .dclp-* マークアップ用の残り */
 html.dclp-page {
   overflow-x: hidden;
+  scroll-padding-top: 82px;
 }
 html.dclp-page body {
   margin: 0;
@@ -406,10 +407,26 @@ html.dclp-page .alert-success {
 }
 
 .clean-partner-lp .cp-header {
-  position: relative;
-  z-index: 10;
-  height: 88px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  height: 72px;
   background: rgba(255, 255, 255, 0.96);
+  transform: translateY(-100%);
+  transition: transform .28s ease, box-shadow .28s ease;
+  pointer-events: none;
+}
+.clean-partner-lp .cp-header.is-visible {
+  transform: translateY(0);
+  box-shadow: 0 8px 24px rgba(7, 28, 67, .08);
+  pointer-events: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  .clean-partner-lp .cp-header {
+    transition: none;
+  }
 }
 
 .clean-partner-lp .cp-header__inner {
@@ -1245,7 +1262,8 @@ html.dclp-page .alert-success {
   .clean-partner-lp { font-size: 15px; padding-bottom: 140px; }
   .clean-partner-lp .cp-container { width: min(100% - 32px, 640px); }
 
-  .clean-partner-lp .cp-header { height: 64px; }
+  .clean-partner-lp .cp-header { height: 56px; }
+  html.dclp-page { scroll-padding-top: 66px; }
   .clean-partner-lp .cp-header__inner { gap: 12px; }
   .clean-partner-lp .cp-brand__logo {
     width: 120px;
