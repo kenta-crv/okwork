@@ -1,4 +1,6 @@
 class ContractsController < ApplicationController
+  LINE_CONSULT_URL = LpDefinition::LINE_CONSULT_URL
+
   protect_from_forgery with: :null_session, only: [:create]
 
   #before_action :authenticate_admin!, only: [:index, :destroy, :send_mail]
@@ -18,13 +20,33 @@ class ContractsController < ApplicationController
       else
         request.referer || root_path
       end
+      origin_path = origin_url.to_s.split('?').first
+      daily_lp = ['/daily-cleaning', '/daily'].include?(origin_path)
+
+      via = params[:contact_via].to_s
+      if via == 'line' || via == 'mail'
+        prefix = via == 'line' ? '依頼経路: LINE' : '依頼経路: メール'
+        @contract.message = [prefix, @contract.message.presence].compact.join("\n")
+      end
 
       if @contract.save
-        ContractMailer.received_email(@contract).deliver_now
-        ContractMailer.send_email(@contract).deliver_now if @contract.email.present?
+        if daily_lp
+          ContractMailer.received_email(@contract, true).deliver_later
+          ContractMailer.send_email(@contract, true).deliver_later if @contract.email.present?
+        else
+          ContractMailer.received_email(@contract).deliver_now
+          ContractMailer.send_email(@contract).deliver_now if @contract.email.present?
+        end
+
+        if via == 'line' && !daily_lp
+          redirect_to LINE_CONSULT_URL, allow_other_host: true
+          return
+        end
 
         separator = origin_url.include?('?') ? '&' : '?'
-        redirect_to "#{origin_url}#{separator}sent=1"
+        sent_url = "#{origin_url}#{separator}sent=1"
+        sent_url += '&via=line' if via == 'line' && daily_lp
+        redirect_to sent_url
       else
         p @contract.errors.full_messages
         separator = origin_url.include?('?') ? '&' : '?'

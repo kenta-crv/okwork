@@ -1,0 +1,73 @@
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#eef8ff;margin:0;padding:24px 12px;font-family:'Hiragino Kaku Gothic ProN','Hiragino Sans','Yu Gothic',Meiryo,sans-serif;">
+  <tr>
+    <td align="center">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="max-width:600px;width:100%;background:#ffffff;border:1px solid #cfe5f7;border-radius:18px;overflow:hidden;">
+        <tr>
+          <td style="background:#06224f;color:#ffffff;padding:20px 24px;">
+            <p style="margin:0 0 6px;font-size:12px;font-weight:800;letter-spacing:.08em;">OK WORK</p>
+            <h1 style="margin:0;font-size:22px;line-height:1.4;">送信が完了しました</h1>
+            <p style="margin:8px 0 0;font-size:14px;">内容を info@j-work.jp に通知しました。</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:20px 24px 8px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+              <tr>
+                <td style="width:33%;padding:8px;background:#f4f8fc;border-radius:10px;color:#06224f;font-size:12px;font-weight:800;">1 条件を入力</td>
+                <td style="width:8px;"></td>
+                <td style="width:33%;padding:8px;background:#f4f8fc;border-radius:10px;color:#06224f;font-size:12px;font-weight:800;">2 内容を確認</td>
+                <td style="width:8px;"></td>
+                <td style="width:33%;padding:8px;background:#e8f4ff;border-radius:10px;color:#06224f;font-size:12px;font-weight:800;">3 メール／LINEで依頼</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:8px 24px 20px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#ecf8ef;border-radius:12px;">
+              <tr>
+                <td style="padding:16px;">
+                  <p style="margin:0 0 8px;color:#14532d;font-size:18px;font-weight:800;">担当者へ通知済みです</p>
+                  <p style="margin:0;color:#14532d;font-size:14px;font-weight:600;line-height:1.6;">ご入力内容を info@j-work.jp に通知しました。内容を確認し、担当者よりご連絡します。</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:0 24px 24px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border:1px solid #cfe5f7;border-radius:12px;">
+              <tr>
+                <td style="padding:16px 16px 4px;color:#06224f;font-size:13px;font-weight:800;">ご依頼内容</td>
+              </tr>
+              <% [
+                ['会社名', @contract.company],
+                ['ご担当者様名', @contract.name],
+                ['電話番号', @contract.tel],
+                ['メールアドレス', @contract.email],
+                ['住所', @contract.address],
+                ['URL', @contract.url],
+                ['ご要望', @contract.message]
+              ].each do |label, value| %>
+              <tr>
+                <td style="padding:8px 16px;border-top:1px solid #eef2f7;">
+                  <p style="margin:0 0 2px;color:#64748b;font-size:11px;font-weight:800;"><%= label %></p>
+                  <p style="margin:0;color:#071c43;font-size:14px;font-weight:700;white-space:pre-wrap;"><%= value.to_s.strip.empty? ? '—' : value %></p>
+                </td>
+              </tr>
+              <% end %>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:0 24px 24px;color:#64748b;font-size:12px;line-height:1.6;">
+            株式会社J Work／OK Work<br>
+            Mail：info@j-work.jp<br>
+            URL：https://okey.work<br>
+            所在地：東京都港区浜松町２丁目２番１５号２Ｆ
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>

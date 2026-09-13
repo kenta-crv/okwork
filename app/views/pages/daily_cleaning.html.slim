@@ -121,7 +121,7 @@
   header.cp-header
     .cp-container.cp-header__inner
       = link_to '#top', class: 'cp-brand', aria: { label: 'OK Work トップへ' } do
-        = image_tag 'logo2.png', alt: 'OK Work', class: 'cp-brand__logo', width: '150', height: '54'
+        = image_tag 'ok-work-cleaning-logo.png', alt: 'OK Work CLEANING SERVICE', class: 'cp-brand__logo'
 
       nav.cp-nav aria-label="メインナビゲーション"
         = link_to 'お悩み', '#service', class: 'cp-nav__link'
@@ -720,50 +720,98 @@
       .cp-modal__panel
         button.cp-modal__close type="button" data-close-contact="true" aria-label="閉じる" ×
         p.cp-modal__kicker CONTACT
-        h2.cp-modal__title 無料お問い合わせ
-        p.cp-modal__lead ヒアリング・お見積りは無料です。フォーム送信またはLINEからご相談ください。
+        header.cp-modal__head
+          - if params[:sent] == '1'
+            h2.cp-modal__title 送信が完了しました
+            p.cp-modal__lead 内容を info@j-work.jp に通知しました。
+          - else
+            h2.cp-modal__title 無料お問い合わせ
+            p.cp-modal__lead ヒアリング・お見積りは無料です。必須項目を入れるとメールとLINEから依頼できます。
+          ol.cp-quote-steps
+            li.cp-quote-steps__item class=(params[:sent] == '1' ? 'is-done' : 'is-current')
+              span 1
+              | 条件を入力
+            li.cp-quote-steps__item class=('is-done' if params[:sent] == '1')
+              span 2
+              | 内容を確認
+            li.cp-quote-steps__item class=(params[:sent] == '1' ? 'is-current' : nil)
+              span 3
+              | メール／LINEで依頼
         - if params[:error] == '1'
           p.cp-form-error 送信に失敗しました。入力内容をご確認のうえ、再度お試しください。
-        = form_with model: @contract, url: contracts_path, local: true, html: { class: 'cp-form', id: 'daily-cleaning-contact' } do |f|
-          = f.hidden_field :origin, value: request.path
-          .cp-form__grid
-            .cp-form__field
-              label.cp-form__label
-                | 会社名
-                span.cp-form__badge.cp-form__badge--required 必須
-              = f.text_field :company, class: 'cp-form__input', placeholder: '株式会社〇〇〇〇', required: true
-            .cp-form__field
-              label.cp-form__label
-                | ご担当者様名
-                span.cp-form__badge.cp-form__badge--required 必須
-              = f.text_field :name, class: 'cp-form__input', placeholder: '山田太郎', required: true
-            .cp-form__field
-              label.cp-form__label
-                | 電話番号
-                span.cp-form__badge.cp-form__badge--required 必須
-              = f.telephone_field :tel, class: 'cp-form__input', placeholder: '050-1234-5678', required: true
-            .cp-form__field
-              label.cp-form__label
-                | メールアドレス
-                span.cp-form__badge.cp-form__badge--required 必須
-              = f.email_field :email, class: 'cp-form__input', placeholder: 'test@example.com', required: true
-            .cp-form__field
-              label.cp-form__label
-                | 住所
-                span.cp-form__badge.cp-form__badge--required 必須
-              = f.text_field :address, class: 'cp-form__input', placeholder: '東京都港区浜松町２丁目２番１５号２Ｆ', required: true
-            .cp-form__field
-              label.cp-form__label
-                | URL
-                span.cp-form__badge.cp-form__badge--required 必須
-              = f.url_field :url, class: 'cp-form__input', placeholder: 'https://example.com/', required: true
-            .cp-form__field.cp-form__field--full
-              label.cp-form__label
-                | 備考・要望
-                span.cp-form__badge.cp-form__badge--optional 任意
-              = f.text_area :message, class: 'cp-form__input cp-form__input--area', placeholder: 'ご希望の人数・頻度・エリアなど'
-          .cp-form__actions
-            = f.submit '無料で相談する', class: 'cp-form__submit'
+        - if params[:sent] == '1'
+          .cp-form-success
+            p.cp-form-success__title 担当者へ通知済みです
+            p.cp-form-success__body
+              | ご入力内容を
+              a href="mailto:info@j-work.jp" info@j-work.jp
+              | に通知しました。
+              - if params[:via] == 'line'
+                | 続いて公式LINEの友だち追加へ進みます。
+            - if params[:via] == 'line'
+              = link_to 'https://lin.ee/XJMSNq9', class: 'cp-contact-button cp-contact-button--line', data: { turbolinks: false } do
+                span.cp-contact-button__icon aria-hidden="true"
+                  svg.cp-ico.cp-ico--solid
+                    use href="#cp-i-line"
+                span.cp-contact-button__copy
+                  strong LINEで友だち追加
+                  small 通知済みの内容でご案内します
+        - else
+          = form_with model: @contract, url: contracts_path, local: true, html: { class: 'cp-form', id: 'daily-cleaning-contact' } do |f|
+            = f.hidden_field :origin, value: request.path
+            .cp-form__grid
+              .cp-form__field
+                label.cp-form__label
+                  | 会社名
+                  span.cp-form__badge.cp-form__badge--required 必須
+                = f.text_field :company, class: 'cp-form__input', placeholder: '株式会社〇〇〇〇', required: true
+              .cp-form__field
+                label.cp-form__label
+                  | ご担当者様名
+                  span.cp-form__badge.cp-form__badge--required 必須
+                = f.text_field :name, class: 'cp-form__input', placeholder: '山田太郎', required: true
+              .cp-form__field
+                label.cp-form__label
+                  | 電話番号
+                  span.cp-form__badge.cp-form__badge--required 必須
+                = f.telephone_field :tel, class: 'cp-form__input', placeholder: '050-1234-5678', required: true
+              .cp-form__field
+                label.cp-form__label
+                  | メールアドレス
+                  span.cp-form__badge.cp-form__badge--required 必須
+                = f.email_field :email, class: 'cp-form__input', placeholder: 'test@example.com', required: true
+              .cp-form__field
+                label.cp-form__label
+                  | 住所
+                  span.cp-form__badge.cp-form__badge--required 必須
+                = f.text_field :address, class: 'cp-form__input', placeholder: '東京都港区浜松町２丁目２番１５号２Ｆ', required: true
+              .cp-form__field
+                label.cp-form__label
+                  | URL
+                  span.cp-form__badge.cp-form__badge--required 必須
+                = f.url_field :url, class: 'cp-form__input', placeholder: 'https://example.com/', required: true
+              .cp-form__field.cp-form__field--full
+                label.cp-form__label
+                  | 備考・要望
+                  span.cp-form__badge.cp-form__badge--optional 任意
+                = f.text_area :message, class: 'cp-form__input cp-form__input--area', placeholder: 'ご希望の人数・頻度・エリアなど', rows: '3'
+            .cp-form__actions
+              button#cp-form-mail.cp-contact-button.cp-form__submit.is-disabled type="submit" name="contact_via" value="mail" disabled="disabled" aria-disabled="true"
+                span.cp-contact-button__icon aria-hidden="true"
+                  svg.cp-ico
+                    use href="#cp-i-mail"
+                span.cp-contact-button__copy
+                  strong メールで依頼する
+                  small 情報を入力
+              button#cp-form-line.cp-contact-button.cp-contact-button--line.cp-form__line.is-disabled type="submit" name="contact_via" value="line" disabled="disabled" aria-disabled="true"
+                span.cp-contact-button__icon aria-hidden="true"
+                  svg.cp-ico.cp-ico--solid
+                    use href="#cp-i-line"
+                span.cp-contact-button__copy
+                  strong LINEで依頼する
+                  small 情報を入力
+              p#cp-form-submit-hint.cp-form__submit-hint 必須項目を入力すると送信できます。
+              p.cp-form__line-note 送信すると内容を保存し、info@j-work.jp へ通知します。LINEの場合は完了後に友だち追加へ進みます。
 
     section#contact.cp-cta
       .cp-container.cp-cta__inner
@@ -772,20 +820,21 @@
           h2 まずはお気軽に#{content_tag(:em, 'ご相談ください！')}
           p ヒアリング・お見積り無料。必要な人材をご提案します。
           .cp-cta__actions
-            button.cp-contact-button.cp-contact-button--large type="button" data-open-contact="true"
-              span.cp-contact-button__icon aria-hidden="true"
-                svg.cp-ico
-                  use href="#cp-i-mail"
-              span.cp-contact-button__copy
-                strong 無料で相談する
-                small お問い合わせはこちら
-            = link_to line_consult_url, class: 'cp-contact-button cp-contact-button--large cp-contact-button--line', target: '_blank', rel: 'noopener noreferrer' do
-              span.cp-contact-button__icon aria-hidden="true"
-                svg.cp-ico.cp-ico--solid
-                  use href="#cp-i-line"
-              span.cp-contact-button__copy
-                strong LINEで相談する
-                small 友だち追加はこちら
+            .cp-split-cta
+              button.cp-split-cta__mail type="button" data-open-contact="true"
+                span.cp-contact-button__icon aria-hidden="true"
+                  svg.cp-ico
+                    use href="#cp-i-mail"
+                span.cp-contact-button__copy
+                  strong メールで依頼する
+                  small 情報を入力
+              button.cp-split-cta__line type="button" data-open-contact="true"
+                span.cp-contact-button__icon aria-hidden="true"
+                  svg.cp-ico.cp-ico--solid
+                    use href="#cp-i-line"
+                span.cp-contact-button__copy
+                  strong LINEで依頼する
+                  small 情報を入力
         ul.cp-cta__benefits
           li
             span.cp-cta__benefit-icon aria-hidden="true"
@@ -849,12 +898,23 @@
       if (!modal) return;
       function openModal(e) {
         if (e) e.preventDefault();
-        if (typeof modal.showModal === 'function') modal.showModal();
-        else modal.setAttribute('open', '');
+        try {
+          if (typeof modal.showModal === 'function') {
+            if (!modal.open) modal.showModal();
+          } else {
+            modal.setAttribute('open', '');
+          }
+        } catch (err) {
+          modal.setAttribute('open', '');
+        }
       }
       function closeModal() {
-        if (typeof modal.close === 'function') modal.close();
-        else modal.removeAttribute('open');
+        try {
+          if (typeof modal.close === 'function' && modal.open) modal.close();
+          else modal.removeAttribute('open');
+        } catch (err) {
+          modal.removeAttribute('open');
+        }
       }
       document.querySelectorAll('[data-open-contact]').forEach(function (el) {
         el.addEventListener('click', openModal);
@@ -864,7 +924,39 @@
       modal.addEventListener('click', function (e) {
         if (e.target === modal) closeModal();
       });
-      if (#{(params[:error].to_s == '1').to_json}) openModal();
+      if (#{(params[:error].to_s == '1' || params[:sent].to_s == '1').to_json}) openModal();
+      if (#{(params[:sent].to_s == '1' && params[:via].to_s == 'line').to_json}) {
+        setTimeout(function () {
+          window.location.href = 'https://lin.ee/XJMSNq9';
+        }, 2500);
+      }
+      var contactForm = document.getElementById('daily-cleaning-contact');
+      var mailBtn = document.getElementById('cp-form-mail');
+      var lineBtn = document.getElementById('cp-form-line');
+      var submitHint = document.getElementById('cp-form-submit-hint');
+      function setSubmitEnabled(on) {
+        [mailBtn, lineBtn].forEach(function (btn) {
+          if (!btn) return;
+          btn.disabled = !on;
+          btn.setAttribute('aria-disabled', on ? 'false' : 'true');
+          btn.classList.toggle('is-disabled', !on);
+        });
+        if (submitHint) submitHint.hidden = !!on;
+      }
+      function updateSubmitState() {
+        if (!contactForm) return;
+        var names = ['contract[company]', 'contract[name]', 'contract[tel]', 'contract[email]', 'contract[address]', 'contract[url]'];
+        var ready = names.every(function (name) {
+          var el = contactForm.elements[name];
+          return el && String(el.value || '').trim();
+        });
+        setSubmitEnabled(ready);
+      }
+      if (contactForm) {
+        contactForm.addEventListener('input', updateSubmitState);
+        contactForm.addEventListener('change', updateSubmitState);
+      }
+      updateSubmitState();
     })();
 
     (function () {

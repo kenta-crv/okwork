@@ -439,6 +439,8 @@ html.dclp-page .alert-success {
 .clean-partner-lp .cp-brand {
   display: inline-flex;
   align-items: center;
+  align-self: stretch;
+  height: 100%;
   gap: 12px;
   color: var(--cp-navy);
   text-decoration: none;
@@ -447,10 +449,10 @@ html.dclp-page .alert-success {
 
 .clean-partner-lp .cp-brand__logo {
   display: block;
-  width: 150px;
-  height: auto;
-  max-width: 150px;
-  max-height: 48px;
+  width: auto;
+  height: 100%;
+  max-width: none;
+  max-height: 100%;
   object-fit: contain;
 }
 
@@ -1143,6 +1145,52 @@ html.dclp-page .alert-success {
   align-items: center;
   gap: 10px;
 }
+.clean-partner-lp .cp-split-cta {
+  position: relative;
+  display: flex;
+  width: min(100%, 360px);
+  height: 52px;
+  border-radius: 999px;
+  overflow: hidden;
+  isolation: isolate;
+  box-shadow: 0 6px 18px rgba(3, 48, 92, .18);
+}
+.clean-partner-lp .cp-split-cta__mail,
+.clean-partner-lp .cp-split-cta__line {
+  appearance: none;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 1 1 50%;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+.clean-partner-lp .cp-split-cta__mail {
+  z-index: 1;
+  padding: 4px 18px 4px 10px;
+  color: #171100;
+  background: var(--cp-yellow);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 22px) 100%, 0 100%);
+}
+.clean-partner-lp .cp-split-cta__line {
+  z-index: 0;
+  margin-left: -22px;
+  padding: 4px 10px 4px 18px;
+  color: #fff;
+  background: #06c755;
+  clip-path: polygon(22px 0, 100% 0, 100% 100%, 0 100%);
+}
+.clean-partner-lp .cp-split-cta__mail .cp-contact-button__icon { color: #171100; }
+.clean-partner-lp .cp-split-cta__line .cp-contact-button__icon { color: #fff; }
+.clean-partner-lp .cp-split-cta .cp-contact-button__copy { text-align: center; }
+.clean-partner-lp .cp-split-cta .cp-contact-button__copy strong { font-size: 12px; }
+.clean-partner-lp .cp-split-cta .cp-contact-button__copy small { font-size: 8px; }
 .clean-partner-lp .cp-contact-button--large {
   min-width: 188px;
   max-width: 100%;
@@ -1266,9 +1314,10 @@ html.dclp-page .alert-success {
   html.dclp-page { scroll-padding-top: 66px; }
   .clean-partner-lp .cp-header__inner { gap: 12px; }
   .clean-partner-lp .cp-brand__logo {
-    width: 120px;
-    max-width: 120px;
-    max-height: 40px;
+    width: auto;
+    height: 100%;
+    max-width: none;
+    max-height: 100%;
   }
   .clean-partner-lp .cp-contact-button--header {
     min-width: 48px;
@@ -1542,6 +1591,9 @@ html.dclp-page .alert-success {
     justify-content: center;
     width: 100%;
   }
+  .clean-partner-lp .cp-split-cta {
+    width: min(100%, 340px);
+  }
   .clean-partner-lp .cp-contact-button--large {
     min-width: 0;
     flex: 1 1 0;
@@ -1582,10 +1634,29 @@ html.dclp-page .alert-success {
   font-size: 14px;
   font-weight: 700;
 }
+.clean-partner-lp .cp-form-success {
+  margin: 0 0 16px;
+  padding: 18px 16px;
+  border-radius: 12px;
+  background: #ecf8ef;
+  color: #14532d;
+}
+.clean-partner-lp .cp-form-success__title {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 800;
+}
+.clean-partner-lp .cp-form-success__body {
+  margin: 0 0 16px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+.clean-partner-lp .cp-form-success__body a { color: #0869d8; }
 .clean-partner-lp .cp-form__grid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 10px;
 }
 .clean-partner-lp .cp-form__field--full { grid-column: 1 / -1; }
 .clean-partner-lp .cp-form__label {
@@ -1613,7 +1684,7 @@ html.dclp-page .alert-success {
   border-color: var(--cp-blue);
 }
 .clean-partner-lp .cp-form__input--area {
-  min-height: 110px;
+  min-height: 72px;
   resize: vertical;
 }
 .clean-partner-lp .cp-form__actions {
@@ -1622,28 +1693,27 @@ html.dclp-page .alert-success {
   gap: 12px;
   margin-top: 22px;
 }
-.clean-partner-lp .cp-form__submit {
-  appearance: none;
-  border: 0;
-  cursor: pointer;
-  width: 100%;
-  min-width: 0;
-  min-height: 52px;
-  padding: 12px 22px;
-  color: #171100;
-  background: var(--cp-yellow);
-  border-radius: 999px;
-  box-shadow: 0 6px 18px rgba(106, 79, 0, .15);
-  font-family: inherit;
-  font-size: 16px;
-  font-weight: 800;
-}
-.clean-partner-lp .cp-form__submit:hover { transform: translateY(-1px); }
+.clean-partner-lp .cp-form__submit,
 .clean-partner-lp .cp-form__line {
   width: 100%;
   min-width: 0;
   min-height: 52px;
 }
+.clean-partner-lp .cp-form__submit.is-disabled,
+.clean-partner-lp .cp-form__line.is-disabled {
+  opacity: .45;
+  box-shadow: none;
+  pointer-events: none;
+}
+.clean-partner-lp .cp-form__submit-hint,
+.clean-partner-lp .cp-form__line-note {
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+.clean-partner-lp .cp-form__submit-hint { font-weight: 700; }
 html.dclp-page .flash-message {
   position: fixed;
   top: 16px;
@@ -1783,4 +1853,51 @@ html.dclp-page .alert-danger { background: #b91c1c; }
   border: 1px solid #d7e2ee;
 }
 .clean-partner-lp .cp-form__optional { display: none; }
+
+.clean-partner-lp .cp-modal__head { margin: 0 28px 0 0; }
+.clean-partner-lp .cp-quote-steps {
+  display: flex;
+  gap: 8px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.clean-partner-lp .cp-quote-steps__item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #f4f8fc;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 800;
+}
+.clean-partner-lp .cp-quote-steps__item span {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #dbe7f3;
+  color: #334155;
+  font-size: 11px;
+}
+.clean-partner-lp .cp-quote-steps__item.is-current {
+  background: #e8f4ff;
+  color: var(--cp-navy);
+}
+.clean-partner-lp .cp-quote-steps__item.is-current span,
+.clean-partner-lp .cp-quote-steps__item.is-done span {
+  background: var(--cp-blue);
+  color: #fff;
+}
+.clean-partner-lp .cp-quote-steps__item.is-done { color: var(--cp-navy); }
+.clean-partner-lp .cp-modal[open] ~ .cp-cta {
+  visibility: hidden;
+  pointer-events: none;
+}
 

@@ -8,8 +8,8 @@ module ApplicationHelper
       reverse: true,
       separator: '|',
       icon: [
-        { href: image_url('favicon.ico') },
-        { href: image_url('favicon.ico'),  rel: 'apple-touch-icon' },
+        { href: image_url('ok-work-cleaning-icon.png') },
+        { href: image_url('ok-work-cleaning-icon.png'), rel: 'apple-touch-icon' },
       ],
     }
   end
@@ -44,7 +44,7 @@ module ApplicationHelper
       "name" => "OK Work",
       "legalName" => "株式会社J Work",
       "url" => "https://okey.work/",
-      "logo" => "https://okey.work#{image_path('favicon.ico')}",
+      "logo" => "https://okey.work#{image_path('ok-work-cleaning-icon.png')}",
       "description" => "清掃・軽貨物・人材など、現場の課題を人材力で解決する OK Work。",
       "address" => {
         "@type" => "PostalAddress",
