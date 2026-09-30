@@ -20,4 +20,17 @@ class ContractTest < ActiveSupport::TestCase
 
     assert contract.valid?
   end
+
+  test "cleaning lp also requires a corporate suffix" do
+    contract = Contract.new(company: "New message from Binance", origin: "/daily-cleaning")
+
+    assert_not contract.valid?
+    assert_includes contract.errors[:company], "には「株式会社」などの法人格を含める必要があります"
+  end
+
+  test "cleaning lp accepts a corporate name" do
+    contract = Contract.new(company: "株式会社セールスプロ", origin: "/daily-cleaning")
+
+    assert contract.valid?
+  end
 end

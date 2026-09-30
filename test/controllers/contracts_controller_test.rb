@@ -7,7 +7,7 @@ class ContractsControllerTest < ActionDispatch::IntegrationTest
     ActionMailer::Base.deliveries.clear
     @params = {
       contract: {
-        company: "テスト商事",
+        company: "株式会社テスト商事",
         name: "山田太郎",
         tel: "050-1234-5678",
         email: "test@example.com",
@@ -38,5 +38,19 @@ class ContractsControllerTest < ActionDispatch::IntegrationTest
       end
     end
     assert_redirected_to "/daily-cleaning?sent=1&via=line"
+  end
+
+  test "daily cleaning rejects a company name without a corporate suffix" do
+    spam_params = @params.merge(
+      contact_via: "mail",
+      contract: @params[:contract].merge(company: "New message from Binance")
+    )
+
+    assert_no_difference("Contract.count") do
+      post contracts_url, params: spam_params
+    end
+
+    assert_redirected_to "/daily-cleaning?error=1"
+    assert_empty ActionMailer::Base.deliveries
   end
 end

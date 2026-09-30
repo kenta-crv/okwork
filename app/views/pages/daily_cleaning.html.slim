@@ -738,7 +738,7 @@
               span 3
               | メール／LINEで依頼
         - if params[:error] == '1'
-          p.cp-form-error 送信に失敗しました。入力内容をご確認のうえ、再度お試しください。
+          p.cp-form-error 送信に失敗しました。会社名に「株式会社」などの法人格が含まれているかご確認ください。
         - if params[:sent] == '1'
           .cp-form-success
             p.cp-form-success__title 担当者へ通知済みです
@@ -764,7 +764,7 @@
                 label.cp-form__label
                   | 会社名
                   span.cp-form__badge.cp-form__badge--required 必須
-                = f.text_field :company, class: 'cp-form__input', placeholder: '株式会社〇〇〇〇', required: true
+                = f.text_field :company, class: 'cp-form__input', placeholder: '株式会社〇〇〇〇', required: true, pattern: '.*(株式会社|合同会社|有限会社|合資会社|合名会社|一般社団法人|一般財団法人|NPO法人|医療法人|社会福祉法人|学校法人|宗教法人|特定非営利活動法人).*', title: '会社名に「株式会社」などを含めてください'
               .cp-form__field
                 label.cp-form__label
                   | ご担当者様名
@@ -950,7 +950,12 @@
           var el = contactForm.elements[name];
           return el && String(el.value || '').trim();
         });
-        setSubmitEnabled(ready);
+        var company = contactForm.elements['contract[company]'];
+        var hasCorporate = company && /株式会社|合同会社|有限会社|合資会社|合名会社|一般社団法人|一般財団法人|NPO法人|医療法人|社会福祉法人|学校法人|宗教法人|特定非営利活動法人/.test(String(company.value || ''));
+        if (submitHint) {
+          submitHint.textContent = (ready && !hasCorporate) ? '会社名に「株式会社」などを含めてください。' : '必須項目を入力すると送信できます。';
+        }
+        setSubmitEnabled(ready && hasCorporate);
       }
       if (contactForm) {
         contactForm.addEventListener('input', updateSubmitState);

@@ -42,7 +42,7 @@
                       | 会社名 
                       span.required-badge
                         | 必須
-                    = f.text_field :company, class: "form-control hero-main-input", placeholder: "株式会社〇〇〇〇", required: true
+                    = f.text_field :company, class: "form-control hero-main-input", placeholder: "株式会社〇〇〇〇", required: true, pattern: ".*(株式会社|合同会社|有限会社|合資会社|合名会社|一般社団法人|一般財団法人|NPO法人|医療法人|社会福祉法人|学校法人|宗教法人|特定非営利活動法人).*", title: "会社名に「株式会社」などを含めてください"
                   .col-12
                     label.form-label.hero-main-label
                       | ご担当者様名
@@ -525,7 +525,7 @@
                       | 会社名 
                       span.required-badge
                         | 必須
-                    = f.text_field :company, class: "form-control hero-main-input", placeholder: "株式会社〇〇〇〇", required: true
+                    = f.text_field :company, class: "form-control hero-main-input", placeholder: "株式会社〇〇〇〇", required: true, pattern: ".*(株式会社|合同会社|有限会社|合資会社|合名会社|一般社団法人|一般財団法人|NPO法人|医療法人|社会福祉法人|学校法人|宗教法人|特定非営利活動法人).*", title: "会社名に「株式会社」などを含めてください"
                   .col-12
                     label.form-label.hero-main-label
                       | ご担当者様名
