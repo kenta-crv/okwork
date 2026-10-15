@@ -1,5 +1,5 @@
 class PagesController < ApplicationController
-  before_action :set_breadcrumbs, except: [:index, :daily_cleaning]
+  before_action :set_breadcrumbs, except: [:index, *LpDefinition::CLEANING_LP_ACTIONS.map(&:to_sym)]
   before_action :initialize_contract
 
   def index; end
@@ -9,6 +9,12 @@ class PagesController < ApplicationController
   def cleaning; end
   def daily; end
   def daily_cleaning; end
+  def mansion_patrol_cleaning; end
+  def hospital_cleaning; end
+  def hotel_cleaning; end
+  def office_cleaning; end
+  def care_cleaning; end
+  def building_cleaning; end
   def housekeeping; end
   def baby; end
   def babysitter; end

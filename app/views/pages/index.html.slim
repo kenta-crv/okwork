@@ -1,138 +1,59 @@
-- set_meta_tags title: "人材の業務委託・業務請負なら『OK Work』｜総合人材サービス"
-- set_meta_tags description: "イベント・物流・清掃・建設・警備・軽貨物まで対応。人材の業務委託・業務請負なら総合サービス企業『OK Work』にお任せください。"
+- set_meta_tags title: "法人向け清掃なら『OK Work』｜日常清掃・ビル清掃"
+- set_meta_tags description: "日常清掃からビル・店舗・マンション巡回まで。現場に合わせた法人向け清掃プランをご提案します。"
 
-.sp-corp-wrapper.jw-platform
-  header.jw-top-header
-    .jw-top-header__inner
-      = link_to root_path, class: "jw-top-header__logo", data: { turbolinks: false } do
-        = image_tag "ok-work-cleaning-logo.png", alt: "OK Work CLEANING SERVICE", class: "jw-top-header__logo-img"
-      nav.jw-top-header__nav
-        = link_to "人材サービス", staffing_path, data: { turbolinks: false }
-        = link_to "日常清掃", daily_path, data: { turbolinks: false }
-        = link_to "お役立ち記事", "/columns", data: { turbolinks: false }
-        = link_to "お問い合わせ", staffing_path(anchor: "inquiry"), data: { turbolinks: false }
+- consultation_url = "/daily-cleaning#contact"
+- cleaning_services = [{ name: "マンション巡回清掃", image: "apartment.jpg", url: "/mansion" }, { name: "病院清掃", image: "hospital.jpg", url: "/hospital" }, { name: "ホテル清掃", image: "hotel.jpg", url: "/hotel" }, { name: "オフィス清掃", image: "office.jpg", url: "/office" }, { name: "介護清掃", image: "care.jpg", url: "/care" }, { name: "ビルクリーニング", image: "building.jpg", url: "/building" }]
 
-  section.jw-hero
-    .jw-hero__grid
-      .jw-hero__copy
-        h1
-          | 業界屈指の人材力で
-          br
-          | 現場課題を解決
-        p.jw-hero__stats-text
-          | 人材の業務委託・業務請負なら
-          span.jw-hero__num OK Work
-        .jw-hero__cta
-          = link_to "人材を依頼したい", staffing_path, class: "jw-btn jw-btn--primary", data: { turbolinks: false }
-          = link_to "日常清掃を見る", daily_path, class: "jw-btn jw-btn--ghost", data: { turbolinks: false }
-      .jw-hero__visual
-        = image_tag "cleaning-image.png", alt: "清掃現場で働く外国人材"
+section.okw-home aria-label="OK Work 法人向け清掃サービス"
+  .okw-home__stage
+    = image_tag "ok_work/background.jpg",
+      class: "okw-home__background",
+      alt: "",
+      aria: { hidden: true },
+      loading: "eager"
 
-  .jw-main
-    section.jw-doors
-      .jw-door-grid
-        article.jw-door
-          p.jw-door__label
-            span.jw-door__num 1
-            | 企業の方へ
-          .jw-door__icon aria-hidden="true"
-            svg viewBox="0 0 64 64" width="64" height="64"
-              rect x="10" y="22" width="18" height="32" rx="2" fill="#1a73e8"
-              rect x="32" y="12" width="22" height="42" rx="2" fill="#3d8bfd"
-              rect x="14" y="28" width="4" height="4" fill="#fff"
-              rect x="20" y="28" width="4" height="4" fill="#fff"
-              rect x="14" y="36" width="4" height="4" fill="#fff"
-              rect x="20" y="36" width="4" height="4" fill="#fff"
-              rect x="36" y="18" width="5" height="5" fill="#fff"
-              rect x="44" y="18" width="5" height="5" fill="#fff"
-              rect x="36" y="28" width="5" height="5" fill="#fff"
-              rect x="44" y="28" width="5" height="5" fill="#fff"
-              rect x="40" y="42" width="6" height="12" fill="#fff"
-          h2 人材を依頼したい
-          p イベント・物流・清掃など、現場に合う人材を業務委託・請負でご提供します。
-          = link_to "詳しく見る  ›", staffing_path, class: "jw-door__btn", data: { turbolinks: false }
+    = image_tag "mark.png",
+      class: "okw-home__mark",
+      alt: "",
+      aria: { hidden: true },
+      loading: "eager"
 
-        article.jw-door
-          p.jw-door__label
-            span.jw-door__num 2
-            | 日常清掃
-          .jw-door__icon aria-hidden="true"
-            svg viewBox="0 0 64 64" width="64" height="64"
-              rect x="18" y="14" width="28" height="36" rx="4" fill="#1a73e8"
-              rect x="24" y="22" width="16" height="3" rx="1.5" fill="#fff"
-              rect x="24" y="30" width="16" height="3" rx="1.5" fill="#fff"
-              rect x="24" y="38" width="10" height="3" rx="1.5" fill="#8bb4f5"
-          h2 施設の清掃を依頼
-          p 日常清掃の発注や業者選びのポイントをまとめています。
-          = link_to "詳しく見る  ›", daily_path, class: "jw-door__btn", data: { turbolinks: false }
+    .okw-home__copy
+      p.okw-home__eyebrow
+        span 法人向け清掃サービス
+        span.okw-home__eyebrow-line aria-hidden="true"
 
-        article.jw-door
-          p.jw-door__label
-            span.jw-door__num 3
-            | お役立ち記事
-          .jw-door__icon aria-hidden="true"
-            svg viewBox="0 0 64 64" width="64" height="64"
-              rect x="14" y="8" width="36" height="48" rx="4" fill="#e8f1ff"
-              rect x="14" y="8" width="36" height="48" rx="4" stroke="#1a73e8" stroke-width="3" fill="none"
-              rect x="22" y="20" width="20" height="3" rx="1.5" fill="#1a73e8"
-              rect x="22" y="28" width="20" height="3" rx="1.5" fill="#1a73e8"
-              rect x="22" y="36" width="14" height="3" rx="1.5" fill="#8bb4f5"
-          h2 現場課題をサポート
-          p 清掃・人材手配に役立つ記事を掲載しています。
-          = link_to "記事を読む  ›", "/columns", class: "jw-door__btn jw-door__btn--ghost", data: { turbolinks: false }
+      h1.okw-home__title
+        span 法人の清掃、
+        span まとめてお任せ。
 
-    ul.jw-stats
-      li
-        .jw-stats__icon aria-hidden="true"
-          svg viewBox="0 0 48 48" width="40" height="40"
-            circle cx="16" cy="16" r="6" fill="#1a73e8"
-            circle cx="32" cy="16" r="6" fill="#3d8bfd"
-            path d="M6 36c1.5-7 6-11 10-11s8.5 4 10 11" fill="#1a73e8"
-            path d="M22 36c1.5-7 6-11 10-11s8.5 4 10 11" fill="#3d8bfd"
-        div
-          strong 総合対応
-          span 複数業界の人材手配
-      li
-        .jw-stats__icon aria-hidden="true"
-          svg viewBox="0 0 48 48" width="40" height="40"
-            rect x="8" y="26" width="8" height="14" rx="2" fill="#8bb4f5"
-            rect x="20" y="18" width="8" height="22" rx="2" fill="#3d8bfd"
-            rect x="32" y="10" width="8" height="30" rx="2" fill="#1a73e8"
-        div
-          strong スポット・長期
-          span 単発から長期契約まで
-      li
-        .jw-stats__icon aria-hidden="true"
-          svg viewBox="0 0 48 48" width="40" height="40"
-            path d="M24 6c-8 0-14 6-14 14 0 10 14 22 14 22s14-12 14-22c0-8-6-14-14-14z" fill="#1a73e8"
-            circle cx="24" cy="20" r="5" fill="#fff"
-        div
-          strong 全国対応
-          span 日本全国でサポート
+      p.okw-home__description
+        span 日常清掃から定期清掃まで。
+        span 現場に合わせた清掃プランをご提案します。
 
-    .sp-company
-      .sp-company-inner
-        h2 会社概要
-        .sp-table
-          .sp-row
-            .sp-th 会社名
-            .sp-td 株式会社J Work
-          .sp-row
-            .sp-th 代表取締役
-            .sp-td 奥山　健太
-          .sp-row
-            .sp-th 資本金
-            .sp-td 5,000,000円
-          .sp-row
-            .sp-th 所在地
-            .sp-td 東京都港区浜松町２丁目２番１５号２Ｆ
+      = link_to consultation_url, class: "okw-home__consultation" do
+        span 清掃について相談する
+        svg.okw-home__consultation-arrow viewBox="0 0 32 24" fill="none" aria-hidden="true"
+          path d="M2 12H28M19 3L28 12L19 21" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"
 
-  footer.jw-footer
-    .jw-footer__inner
-      p.jw-footer__heading サービス
-      ul.jw-footer__list
-        li = link_to "トップ", root_path, data: { turbolinks: false }
-        li = link_to "人材サービス", staffing_path, data: { turbolinks: false }
-        li = link_to "日常清掃", daily_path, data: { turbolinks: false }
-        li = link_to "お役立ち記事", "/columns", data: { turbolinks: false }
-    p.jw-footer__copy &copy; #{Time.current.year} OK Work
+    nav.okw-home__services aria-label="清掃サービスを選ぶ"
+      - cleaning_services.each do |service|
+        = link_to service[:url], class: "okw-home__service" do
+          .okw-home__service-face
+            = image_tag "ok_work/#{service[:image]}",
+              class: "okw-home__service-photo",
+              alt: "",
+              loading: "eager"
+
+            span.okw-home__service-shade aria-hidden="true"
+
+          span.okw-home__service-name = service[:name]
+
+          span.okw-home__service-arrow aria-hidden="true"
+            svg viewBox="0 0 24 24" fill="none"
+              path d="M4 12H20M13 5L20 12L13 19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+
+    = image_tag "team.png",
+      class: "okw-home__team",
+      alt: "清掃機器・モップ・脚立を備えたOK Workの清掃スタッフ",
+      loading: "eager"

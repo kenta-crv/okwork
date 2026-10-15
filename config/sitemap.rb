@@ -2,12 +2,15 @@ require 'net/http'
 require 'nokogiri'
 
 SitemapGenerator::Sitemap.default_host = "https://okey.work"
+SitemapGenerator::Sitemap.include_root = false
 
 SitemapGenerator::Sitemap.create do
   add root_path, changefreq: 'hourly', priority: 1.0
 
   pages = %w[
     daily
+    daily-cleaning
+    staffing
   ]
 
   pages.each do |page|

@@ -21,7 +21,7 @@ class ContractsController < ApplicationController
         request.referer || root_path
       end
       origin_path = origin_url.to_s.split('?').first
-      daily_lp = ['/daily-cleaning', '/daily'].include?(origin_path)
+      daily_lp = LpDefinition.cleaning_lp_path?(origin_path)
 
       via = params[:contact_via].to_s
       if via == 'line' || via == 'mail'

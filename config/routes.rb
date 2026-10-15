@@ -36,6 +36,18 @@ Rails.application.routes.draw do
   get 'columns',         to: 'pages#columns'
   get 'daily',          to: 'pages#daily'
   get 'daily-cleaning', to: 'pages#daily_cleaning'
+  get 'mansion',  to: 'pages#mansion_patrol_cleaning'
+  get 'hospital', to: 'pages#hospital_cleaning'
+  get 'hotel',    to: 'pages#hotel_cleaning'
+  get 'office',   to: 'pages#office_cleaning'
+  get 'care',     to: 'pages#care_cleaning'
+  get 'building', to: 'pages#building_cleaning'
+  get 'mansion-patrol-cleaning', to: redirect('/mansion')
+  get 'hospital-cleaning',       to: redirect('/hospital')
+  get 'hotel-cleaning',          to: redirect('/hotel')
+  get 'office-cleaning',         to: redirect('/office')
+  get 'care-cleaning',           to: redirect('/care')
+  get 'building-cleaning',       to: redirect('/building')
   get 'staffing',       to: 'pages#staffing'
 
   # ================================================================

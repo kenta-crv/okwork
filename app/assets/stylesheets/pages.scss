@@ -1,3 +1,608 @@
 // Place all the styles related to the pages controller here.
 // They will automatically be included in application.css.
 // You can use Sass (SCSS) here: http://sass-lang.com/
+
+html.okw-home-page,
+html.okw-home-page body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background: #067bdc;
+}
+
+html.okw-home-page {
+  overflow-x: hidden;
+}
+
+html.okw-home-page main.jw-top-main {
+  margin: 0 !important;
+  padding: 0;
+}
+
+.okw-home,
+.okw-home *,
+.okw-home *::before,
+.okw-home *::after {
+  box-sizing: border-box;
+}
+
+.okw-home {
+  --okw-blue: #0060e5;
+  --okw-white: #ffffff;
+
+  position: relative;
+  isolation: isolate;
+
+  display: grid;
+  place-items: center;
+
+  width: 100%;
+  height: 100vh;
+  height: 100svh;
+
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+
+  background: #067bdc;
+  color: var(--okw-white);
+
+  font-family:
+    "Noto Sans JP",
+    "Hiragino Kaku Gothic ProN",
+    "Hiragino Sans",
+    "Yu Gothic",
+    Meiryo,
+    sans-serif;
+
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.okw-home img {
+  max-width: none;
+  vertical-align: middle;
+}
+
+.okw-home a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.okw-home a.okw-home__consultation,
+.okw-home a.okw-home__consultation:visited {
+  color: var(--okw-blue);
+}
+
+/*
+ * 採用画像と同じ16:9の座標系。
+ * 画面比率が異なる場合も人物・文字・カードを伸ばさず、
+ * 画面内に収まる大きさで中央に配置。
+ */
+.okw-home .okw-home__stage {
+  position: relative;
+  isolation: isolate;
+  container-type: inline-size;
+
+  width: min(100%, 177.777778vh);
+  width: min(100%, 177.777778svh);
+  aspect-ratio: 16 / 9;
+
+  flex: none;
+}
+
+.okw-home .okw-home__background {
+  position: absolute;
+  z-index: 0;
+
+  top: 50%;
+  left: 50%;
+
+  display: block;
+  width: 100vw;
+  max-width: none;
+  height: 100vh;
+  height: 100svh;
+
+  object-fit: cover;
+  object-position: center;
+  transform: translate(-50%, -50%);
+
+  pointer-events: none;
+  user-select: none;
+}
+
+.okw-home .okw-home__mark {
+  position: absolute;
+  z-index: 1;
+
+  top: 6.5%;
+  left: 50.5%;
+
+  display: block;
+  width: 49%;
+  max-width: none;
+  height: auto;
+
+  pointer-events: none;
+  user-select: none;
+}
+
+.okw-home .okw-home__copy {
+  position: absolute;
+  z-index: 3;
+
+  top: 7.4%;
+  left: 6.4%;
+
+  width: 46%;
+  margin: 0;
+  padding: 0;
+}
+
+.okw-home .okw-home__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 1.25cqw;
+
+  margin: 0;
+  padding: 0;
+
+  color: var(--okw-white);
+  font-size: 1.55cqw;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 0.035em;
+  white-space: nowrap;
+}
+
+.okw-home .okw-home__eyebrow-line {
+  display: block;
+  flex: 0 0 4.6cqw;
+
+  width: 4.6cqw;
+  height: 0.13cqw;
+
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.okw-home .okw-home__title {
+  margin: 1.05cqw 0 0;
+  padding: 0;
+
+  border: 0;
+  background: transparent;
+  color: var(--okw-white);
+
+  font-family: inherit;
+  font-size: 4.85cqw;
+  font-weight: 900;
+  line-height: 1.14;
+  letter-spacing: -0.035em;
+
+  text-align: left;
+  text-shadow: none;
+}
+
+.okw-home .okw-home__title > span {
+  display: block;
+  white-space: nowrap;
+}
+
+.okw-home .okw-home__description {
+  margin: 1.1cqw 0 0;
+  padding: 0;
+
+  color: var(--okw-white);
+  font-size: 1.35cqw;
+  font-weight: 700;
+  line-height: 1.55;
+  letter-spacing: 0.012em;
+}
+
+.okw-home .okw-home__description > span {
+  display: block;
+  white-space: nowrap;
+}
+
+.okw-home .okw-home__consultation {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.1cqw;
+
+  width: 22.8cqw;
+  height: 3.85cqw;
+
+  margin: 1.45cqw 0 0;
+  padding: 0 1.4cqw;
+
+  border: 0;
+  border-radius: 999px;
+
+  background: var(--okw-white);
+  color: var(--okw-blue);
+
+  font-family: inherit;
+  font-size: 1.42cqw;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0;
+
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+
+  box-shadow: none;
+  cursor: pointer;
+
+  transition:
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.okw-home .okw-home__consultation-arrow {
+  display: block;
+  flex: 0 0 auto;
+
+  width: 1.7cqw;
+  height: 1.25cqw;
+
+  color: currentColor;
+}
+
+.okw-home .okw-home__services {
+  position: absolute;
+  z-index: 4;
+
+  top: 56.5%;
+  left: 3.2%;
+
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  column-gap: 0.95cqw;
+  row-gap: 0.7cqw;
+
+  width: 42.5%;
+  height: 34.5%;
+
+  margin: 0;
+  padding: 0;
+
+  border: 0;
+  background: transparent;
+}
+
+.okw-home .okw-home__service {
+  position: relative;
+  isolation: isolate;
+
+  display: block;
+  min-width: 0;
+  min-height: 0;
+
+  margin: 0;
+  padding: 0;
+
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--okw-white);
+
+  font-family: inherit;
+  text-decoration: none;
+
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.okw-home .okw-home__service-face {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+
+  overflow: hidden;
+
+  clip-path: polygon(
+    6% 8%,
+    100% 0,
+    94% 100%,
+    0 100%
+  );
+
+  background: #075db4;
+}
+
+.okw-home .okw-home__service-photo {
+  position: relative;
+  top: 12%;
+
+  display: block;
+
+  width: 100%;
+  max-width: none;
+  height: 100%;
+
+  object-fit: cover;
+  object-position: 50% 8%;
+
+  transform-origin: 50% 18%;
+  transform: scale(1.05);
+
+  transition: transform 240ms ease;
+}
+
+.okw-home .okw-home__service:nth-child(3) .okw-home__service-photo {
+  object-position: 50% 12%;
+  transform: scale(1.12);
+}
+
+.okw-home .okw-home__service:nth-child(6) .okw-home__service-photo {
+  object-position: 50% 20%;
+  transform: scale(1.22);
+}
+
+.okw-home .okw-home__service-shade {
+  position: absolute;
+  inset: 0;
+
+  display: block;
+
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 66, 150, 0) 34%,
+    rgba(0, 72, 170, 0.18) 58%,
+    rgba(0, 66, 165, 0.86) 84%,
+    rgba(0, 65, 164, 0.98) 100%
+  );
+
+  pointer-events: none;
+}
+
+.okw-home .okw-home__service-name {
+  position: absolute;
+  z-index: 1;
+
+  left: 6%;
+  bottom: 9%;
+
+  display: block;
+  max-width: 72%;
+
+  color: var(--okw-white);
+  font-size: 1.32cqw;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+  white-space: nowrap;
+
+  text-shadow: 0 1px 2px rgba(0, 38, 100, 0.16);
+
+  pointer-events: none;
+}
+
+.okw-home .okw-home__service:nth-child(3) .okw-home__service-name {
+  font-size: 1.18cqw;
+}
+
+.okw-home .okw-home__service-arrow {
+  position: absolute;
+  z-index: 2;
+
+  right: 7%;
+  bottom: 10%;
+
+  display: grid;
+  place-items: center;
+
+  width: 2.55cqw;
+  height: 2.55cqw;
+
+  border: 0.12cqw solid var(--okw-white);
+  border-radius: 50%;
+
+  background: #0063ed;
+  color: var(--okw-white);
+
+  transition: background-color 180ms ease;
+
+  pointer-events: none;
+}
+
+.okw-home .okw-home__service-arrow > svg {
+  display: block;
+  width: 1.45cqw;
+  height: 1.45cqw;
+}
+
+.okw-home .okw-home__team {
+  position: absolute;
+  z-index: 2;
+
+  left: 43.5%;
+  right: auto;
+  bottom: 6.4%;
+
+  display: block;
+  width: 55%;
+  max-width: none;
+  height: auto;
+
+  pointer-events: none;
+  user-select: none;
+}
+
+@media (hover: hover) {
+  .okw-home .okw-home__consultation:hover {
+    background: #edf7ff;
+    box-shadow: 0 0.35cqw 1.1cqw rgba(0, 38, 112, 0.2);
+  }
+
+  .okw-home .okw-home__service:hover .okw-home__service-photo {
+    transform: scale(1.12);
+  }
+
+  .okw-home .okw-home__service:nth-child(3):hover .okw-home__service-photo {
+    transform: scale(1.18);
+  }
+
+  .okw-home .okw-home__service:nth-child(6):hover .okw-home__service-photo {
+    transform: scale(1.28);
+  }
+
+  .okw-home .okw-home__service:hover .okw-home__service-arrow {
+    background: #004ab8;
+  }
+}
+
+.okw-home .okw-home__consultation:focus-visible,
+.okw-home .okw-home__service:focus-visible {
+  outline: 3px solid #ffe071;
+  outline-offset: 5px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .okw-home .okw-home__consultation,
+  .okw-home .okw-home__service-photo,
+  .okw-home .okw-home__service-arrow {
+    transition: none;
+  }
+}
+
+@media (max-width: 800px) {
+  html.okw-home-page body {
+    height: auto;
+  }
+
+  .okw-home {
+    display: block;
+    height: auto;
+    min-height: 100svh;
+    overflow: visible;
+  }
+
+  .okw-home .okw-home__stage {
+    width: 100%;
+    aspect-ratio: auto;
+    min-height: 100svh;
+  }
+
+  .okw-home .okw-home__background {
+    width: 100%;
+    height: 100%;
+    transform: none;
+    top: 0;
+    left: 0;
+    object-fit: cover;
+  }
+
+  .okw-home .okw-home__copy,
+  .okw-home .okw-home__services,
+  .okw-home .okw-home__mark,
+  .okw-home .okw-home__team {
+    position: relative;
+    top: auto;
+    left: auto;
+    right: auto;
+    bottom: auto;
+  }
+
+  .okw-home .okw-home__copy {
+    z-index: 3;
+    width: auto;
+    padding: 28px 20px 8px;
+  }
+
+  .okw-home .okw-home__eyebrow,
+  .okw-home .okw-home__title,
+  .okw-home .okw-home__description {
+    font-size: revert;
+  }
+
+  .okw-home .okw-home__eyebrow {
+    font-size: 14px;
+    white-space: normal;
+  }
+
+  .okw-home .okw-home__eyebrow-line {
+    width: 36px;
+    flex-basis: 36px;
+    height: 2px;
+  }
+
+  .okw-home .okw-home__title {
+    margin-top: 10px;
+    font-size: clamp(28px, 9vw, 40px);
+  }
+
+  .okw-home .okw-home__title > span,
+  .okw-home .okw-home__description > span {
+    white-space: normal;
+  }
+
+  .okw-home .okw-home__description {
+    margin-top: 12px;
+    font-size: 14px;
+  }
+
+  .okw-home .okw-home__consultation {
+    width: min(100%, 280px);
+    height: 48px;
+    margin-top: 18px;
+    font-size: 15px;
+    gap: 10px;
+  }
+
+  .okw-home .okw-home__consultation-arrow {
+    width: 18px;
+    height: 14px;
+  }
+
+  .okw-home .okw-home__mark {
+    position: absolute;
+    top: 38%;
+    left: auto;
+    right: -8%;
+    width: 78%;
+    opacity: 0.9;
+  }
+
+  .okw-home .okw-home__team {
+    display: block;
+    width: min(92%, 420px);
+    margin: 8px auto 0;
+  }
+
+  .okw-home .okw-home__services {
+    display: grid;
+    width: calc(100% - 24px);
+    height: auto;
+    margin: 8px 12px 24px;
+    row-gap: 8px;
+    column-gap: 8px;
+  }
+
+  .okw-home .okw-home__service {
+    min-height: 108px;
+  }
+
+  .okw-home .okw-home__service-name {
+    font-size: 13px;
+  }
+
+  .okw-home .okw-home__service:nth-child(3) .okw-home__service-name {
+    font-size: 12px;
+  }
+
+  .okw-home .okw-home__service-arrow {
+    width: 28px;
+    height: 28px;
+    border-width: 1.5px;
+  }
+
+  .okw-home .okw-home__service-arrow > svg {
+    width: 16px;
+    height: 16px;
+  }
+}

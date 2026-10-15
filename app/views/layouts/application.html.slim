@@ -1,10 +1,10 @@
 - top_home = controller_name == "pages" && action_name == "index"
-- daily_cleaning_lp = controller_name == "pages" && action_name == "daily_cleaning"
+- daily_cleaning_lp = controller_name == "pages" && LpDefinition.cleaning_lp_action?(action_name)
 - isolated_lp = daily_cleaning_lp
 - isolated_lp_html_class = daily_cleaning_lp ? "dclp-page" : nil
 - isolated_lp_main_class = daily_cleaning_lp ? "dclp-main" : nil
 doctype html
-html lang="ja" class=(top_home ? "jw-top-page" : isolated_lp_html_class)
+html lang="ja" class=(top_home ? "jw-top-page okw-home-page" : isolated_lp_html_class)
   head
     = render "layouts/head"
 

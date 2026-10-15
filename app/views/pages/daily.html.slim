@@ -1,5 +1,5 @@
-    - set_meta_tags title: '日常清掃で施設のお掃除美化なら『J Work』'
-    - set_meta_tags description: '日常清掃で施設のお掃除美化なら『J Work』'
+    - set_meta_tags title: '日常清掃で施設のお掃除美化なら『OK Work』'
+    - set_meta_tags description: 'オフィス・マンション・ビルの日常清掃なら『OK Work』。週1回から、お見積り無料です。'
 
     section.hero-main-section.position-relative(style="--bg-pc: url(#{asset_path('cleaning-image.png')}); --bg-sp: url(#{asset_path('cleaning-image-sp.png')});")
       .container
@@ -14,7 +14,7 @@
                   | 御社の施設を丁寧に清掃
               h2.hero-main-subtitle.mt-3
                 span.noto
-                  | 清掃の依頼なら『株式会社J Work』
+                  | 清掃の依頼なら『OK Work』
               .d-flex.align-items-center.mt-4.hero-main-badges.gap-3
                 button.hero-main-badge
                   |  ✓ 丁寧な清掃
@@ -109,11 +109,11 @@
       .japan-notyo-container
         .japan-notyo-column.japan-notyo-text-column
           h2.japan-notyo-heading
-            | 株式会社J Workの清掃事業とは？
+            | OK Workの清掃事業とは？
           h2.japan-notyo-heading
             | 
           p.japan-notyo-description
-            |  『株式会社J Work』は、豊富な人材を活かして、全国の各地に拠点を持ち、施設の清掃美化に励んでいる企業となります。
+            |  『OK Work』は、豊富な人材を活かして、全国の各地に拠点を持ち、施設の清掃美化に励んでいる企業となります。
             br
             |  オフィス・マンション・ビル・アパート・工場・病院・介護施設と多数の清掃に対応しております。
         .japan-notyo-column.japan-notyo-image-column
@@ -141,7 +141,7 @@
           .ser-mos-kicker
             | 
           h2.ser-mos-title
-            | 株式会社J Work『日常清掃の範囲』
+            | OK Work『日常清掃の範囲』
         .ser-mos-panel.mx-auto.p-4.rounded-4
           .row.g-4
             .col-lg-6
@@ -216,7 +216,7 @@
         h2.main-moss-title
           | 御社の施設美化を支える
         h3.main-moss-subtitle
-          | 『株式会社J Work』の日常清掃導入メリット
+          | 『OK Work』の日常清掃導入メリット
       .container-fluid.main-moss-block
         .row.align-items-center
           .col-lg-6.text-center
@@ -572,7 +572,7 @@
         - featured_columns_for(:daily).each do |item|
           li = link_to item[:title], item[:path]
       p.sp-columns-seo__more
-        = link_to "記事一覧を見る", "/columns"
+        = link_to "記事一覧を見る", featured_columns_more_path(:daily)
 
     .section-company
       .company-card

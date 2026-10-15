@@ -225,14 +225,10 @@
       .cp-container
         p.cp-section-kicker 人材力で、現場を支える。
         h2.cp-heading
-          | クリーンパートナーが
+          | OK Workが
           br
           em 選ばれる
           | 理由
-        p.cp-heading-lead
-          | 毎月アクティブ約4,000名・新規登録約500名の人材力で、
-          br
-          | 全国の現場へ、経験者を手配します。
 
         .cp-features__grid
           article.cp-feature-card
@@ -526,7 +522,7 @@
 
     section#reviews.cp-reviews.cp-section
       .cp-container
-        p.cp-section-kicker USER REVIEW
+        p.cp-section-kicker 実績
         h2.cp-heading ご利用#{content_tag(:em, 'レビュー')}
         p.cp-heading-lead 日常清掃の人材手配をご利用いただいた企業・施設のご担当者様の声です。
 
@@ -572,7 +568,7 @@
           - featured_columns_for(:daily).each do |item|
             li = link_to item[:title], item[:path]
         .cp-articles__more
-          = link_to "記事一覧を見る", "/columns", class: "cp-outline-button"
+          = link_to "記事一覧を見る", featured_columns_more_path(:daily), class: "cp-outline-button"
 
     section#flow.cp-flow.cp-section
       .cp-container
@@ -632,13 +628,13 @@
             p はい。早朝や深夜の清掃も非常に速やかに人材の手配が可能です。
           details.cp-faq__item
             summary どのくらい早く手配できますか？
-            p 豊富な登録者数を活かし、迅速に人材をご用意します。急な欠員補充や増員もご相談ください。
+            p 条件にもよりますが、条件が最速でマッチする場合、当社で一次面接をしてから最終面接のご提案をさせていただくので最短1週間からとなります。
           details.cp-faq__item
             summary 現場の管理や指導もお願いできますか？
             p 当社は人材の手配・提供が役割です。作業内容や指導方針のご指示はお客様にお願いしています。担当者が現場を訪問して管理・指導することはありません。
           details.cp-faq__item
             summary スタッフの国籍や経験について教えてください
-            p 経験者の手配を基本としています。外国籍スタッフも多く在籍していますが、日本語での業務コミュニケーションが可能です。一部未経験者が入る場合もございます。経験者のみのご希望はご相談ください。
+            p 国籍は、外国籍のスタッフが多く在籍しています。経験は、清掃の経験がある人を基本に手配しています。未経験の方が入る場合もあります。国籍や経験の条件は、お見積りのときにご希望を伺います。
           details.cp-faq__item
             summary 定期的な清掃契約は可能ですか？
             p 可能です。年単位・月単位など、ご希望のスケジュールに合わせた契約形態で人材を手配いたします。
@@ -647,7 +643,7 @@
             p 当社ではホテル清掃・公共清掃・屋内施設清掃と幅広い経験スタッフが在籍しております。
           details.cp-faq__item
             summary 週何回・何時間から依頼ができますか？
-            p 週1回・1日3時間〜ご依頼いただけます。
+            p 回数と時間は、現場の条件を伺ってからご提案します。料金プランの時間は一例です。
           details.cp-faq__item
             summary 清掃道具はこちらで用意する必要はありますか？
             p はい。清掃用具はお客様にてご用意ください。施設様でご用意いただいたものを使用させていただいております。
@@ -677,7 +673,7 @@
                     use href="#cp-i-building"
                 span 企業の施設運営を支えます。
             p.cp-company__desc
-              | Clean Partnerは、オフィス・店舗・施設の日常清掃に必要な人材手配に強みを持つサービスです。豊富な人材集客力と現場経験者のネットワークで、安定した人員体制を届けます。
+              | OK Workは、オフィス・店舗・施設の日常清掃に必要な人材手配に強みを持つサービスです。豊富な人材集客力と現場経験者のネットワークで、安定した人員体制を届けます。
             ul.cp-company__stats
               li
                 strong 週1回〜
@@ -856,6 +852,33 @@
             strong ご連絡
 
   javascript:
+    (function () {
+      var items = document.querySelectorAll('.clean-partner-lp .cp-faq__item');
+      items.forEach(function (item) {
+        item.addEventListener('toggle', function () {
+          if (!item.open) return;
+          items.forEach(function (other) {
+            if (other !== item) other.open = false;
+          });
+        });
+      });
+    })();
+
+    (function () {
+      var grid = document.querySelector('.clean-partner-lp .cp-reviews__grid');
+      if (!grid || grid.querySelector('.cp-reviews__track')) return;
+      var set = document.createElement('div');
+      set.className = 'cp-reviews__set';
+      while (grid.firstChild) set.appendChild(grid.firstChild);
+      var track = document.createElement('div');
+      track.className = 'cp-reviews__track';
+      var clone = set.cloneNode(true);
+      clone.setAttribute('aria-hidden', 'true');
+      track.appendChild(set);
+      track.appendChild(clone);
+      grid.appendChild(track);
+    })();
+
     (function () {
       var header = document.querySelector('.clean-partner-lp .cp-header');
       if (!header) return;
