@@ -989,55 +989,55 @@
     })();
 
     (function () {
-      // 令和7年度 地域別最低賃金（厚生労働省答申ベース）
+      // 令和8年度 地域別最低賃金
       var PREF_WAGES = [
-        { name: '北海道', wage: 1075 },
-        { name: '青森県', wage: 1029 },
-        { name: '岩手県', wage: 1031 },
-        { name: '宮城県', wage: 1038 },
-        { name: '秋田県', wage: 1031 },
-        { name: '山形県', wage: 1032 },
-        { name: '福島県', wage: 1033 },
-        { name: '茨城県', wage: 1074 },
-        { name: '栃木県', wage: 1068 },
-        { name: '群馬県', wage: 1063 },
-        { name: '埼玉県', wage: 1141 },
-        { name: '千葉県', wage: 1140 },
-        { name: '東京都', wage: 1226 },
-        { name: '神奈川県', wage: 1225 },
-        { name: '新潟県', wage: 1050 },
-        { name: '富山県', wage: 1062 },
-        { name: '石川県', wage: 1054 },
-        { name: '福井県', wage: 1053 },
-        { name: '山梨県', wage: 1052 },
-        { name: '長野県', wage: 1061 },
-        { name: '岐阜県', wage: 1065 },
-        { name: '静岡県', wage: 1097 },
-        { name: '愛知県', wage: 1140 },
-        { name: '三重県', wage: 1087 },
-        { name: '滋賀県', wage: 1080 },
-        { name: '京都府', wage: 1122 },
-        { name: '大阪府', wage: 1177 },
-        { name: '兵庫県', wage: 1116 },
-        { name: '奈良県', wage: 1051 },
-        { name: '和歌山県', wage: 1045 },
-        { name: '鳥取県', wage: 1030 },
-        { name: '島根県', wage: 1033 },
-        { name: '岡山県', wage: 1047 },
-        { name: '広島県', wage: 1085 },
-        { name: '山口県', wage: 1043 },
-        { name: '徳島県', wage: 1046 },
-        { name: '香川県', wage: 1036 },
-        { name: '愛媛県', wage: 1033 },
-        { name: '高知県', wage: 1023 },
-        { name: '福岡県', wage: 1057 },
-        { name: '佐賀県', wage: 1030 },
-        { name: '長崎県', wage: 1031 },
-        { name: '熊本県', wage: 1034 },
-        { name: '大分県', wage: 1035 },
-        { name: '宮崎県', wage: 1023 },
-        { name: '鹿児島県', wage: 1026 },
-        { name: '沖縄県', wage: 1023 }
+        { name: '北海道', wage: 1131 },
+        { name: '青森県', wage: 1090 },
+        { name: '岩手県', wage: 1090 },
+        { name: '宮城県', wage: 1098 },
+        { name: '秋田県', wage: 1090 },
+        { name: '山形県', wage: 1092 },
+        { name: '福島県', wage: 1094 },
+        { name: '茨城県', wage: 1136 },
+        { name: '栃木県', wage: 1125 },
+        { name: '群馬県', wage: 1120 },
+        { name: '埼玉県', wage: 1196 },
+        { name: '千葉県', wage: 1195 },
+        { name: '東京都', wage: 1280 },
+        { name: '神奈川県', wage: 1279 },
+        { name: '新潟県', wage: 1108 },
+        { name: '富山県', wage: 1119 },
+        { name: '石川県', wage: 1113 },
+        { name: '福井県', wage: 1112 },
+        { name: '山梨県', wage: 1113 },
+        { name: '長野県', wage: 1117 },
+        { name: '岐阜県', wage: 1121 },
+        { name: '静岡県', wage: 1154 },
+        { name: '愛知県', wage: 1195 },
+        { name: '三重県', wage: 1143 },
+        { name: '滋賀県', wage: 1136 },
+        { name: '京都府', wage: 1180 },
+        { name: '大阪府', wage: 1231 },
+        { name: '兵庫県', wage: 1172 },
+        { name: '奈良県', wage: 1107 },
+        { name: '和歌山県', wage: 1101 },
+        { name: '鳥取県', wage: 1090 },
+        { name: '島根県', wage: 1092 },
+        { name: '岡山県', wage: 1104 },
+        { name: '広島県', wage: 1141 },
+        { name: '山口県', wage: 1101 },
+        { name: '徳島県', wage: 1103 },
+        { name: '香川県', wage: 1092 },
+        { name: '愛媛県', wage: 1093 },
+        { name: '高知県', wage: 1086 },
+        { name: '福岡県', wage: 1114 },
+        { name: '佐賀県', wage: 1095 },
+        { name: '長崎県', wage: 1087 },
+        { name: '熊本県', wage: 1092 },
+        { name: '大分県', wage: 1096 },
+        { name: '宮崎県', wage: 1085 },
+        { name: '鹿児島県', wage: 1090 },
+        { name: '沖縄県', wage: 1086 }
       ];
       var COMMON_ADD = 200;
       var PLAN_EXTRAS = { light: 1000, standard: 900, fulltime: 800 };
@@ -1052,9 +1052,9 @@
       var PRICE_MARKUP = 100;
       if (!select || !baseAmount || !cards.length) return;
 
-      // 例: 1014円 → 1200円（200円単位で端数切り上げ）
+      // 例: 1189円 → 1200円、1123円 → 1150円（50円単位で切り上げ）
       function roundUpWage(wage) {
-        return Math.ceil(wage / 200) * 200;
+        return Math.ceil(wage / 50) * 50;
       }
 
       function formatYen(n) {
