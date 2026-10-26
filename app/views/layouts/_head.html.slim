@@ -38,7 +38,10 @@ script
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
     gtag('config', 'AW-10998015402');
-    gtag('config', 'G-SZLWY1TPZF');
+- if google_analytics_enabled?
+  script
+    |
+      gtag('config', 'G-SZLWY1TPZF');
 
 / headタグ内のGoogleタグ（gtag.js）の直後に配置
 script
