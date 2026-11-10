@@ -205,6 +205,46 @@ html.okw-home-page main.jw-top-main {
   white-space: nowrap;
 }
 
+.okw-home .okw-home__facts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35cqw 1.6cqw;
+
+  margin: 1cqw 0 0;
+  padding: 0;
+}
+
+.okw-home .okw-home__facts > div {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45cqw;
+
+  margin: 0;
+  padding: 0;
+}
+
+.okw-home .okw-home__facts dt,
+.okw-home .okw-home__facts dd {
+  margin: 0;
+  padding: 0;
+
+  color: var(--okw-white);
+  font-size: 1.15cqw;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.okw-home .okw-home__facts dt {
+  font-weight: 500;
+  opacity: 0.82;
+}
+
+.okw-home .okw-home__facts dd {
+  font-weight: 800;
+}
+
 .okw-home .okw-home__consultation {
   display: inline-flex;
   align-items: center;
@@ -516,7 +556,9 @@ html.okw-home-page main.jw-top-main {
 
   .okw-home .okw-home__eyebrow,
   .okw-home .okw-home__title,
-  .okw-home .okw-home__description {
+  .okw-home .okw-home__description,
+  .okw-home .okw-home__facts dt,
+  .okw-home .okw-home__facts dd {
     font-size: revert;
   }
 
@@ -544,6 +586,21 @@ html.okw-home-page main.jw-top-main {
   .okw-home .okw-home__description {
     margin-top: 12px;
     font-size: 14px;
+  }
+
+  .okw-home .okw-home__facts {
+    gap: 4px 16px;
+    margin-top: 12px;
+  }
+
+  .okw-home .okw-home__facts > div {
+    gap: 6px;
+  }
+
+  .okw-home .okw-home__facts dt,
+  .okw-home .okw-home__facts dd {
+    font-size: 13px;
+    white-space: normal;
   }
 
   .okw-home .okw-home__consultation {
